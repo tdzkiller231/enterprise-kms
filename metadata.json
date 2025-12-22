@@ -1,0 +1,5 @@
+{
+  "name": "Enterprise KMS",
+  "description": "Hệ thống Quản trị Tri thức (KMS) toàn diện với tính năng quản lý vòng đời tài liệu, quy trình phê duyệt, không gian tri thức và báo cáo thống kê.",
+  "requestFramePermissions": []
+}

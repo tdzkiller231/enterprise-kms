@@ -14,7 +14,6 @@ import { SystemAdmin } from './pages/SystemAdmin';
 import { FeedbackList } from './pages/FeedbackList';
 import { Reports } from './pages/Reports';
 import { SearchConfig } from './pages/SearchConfig';
-import { KnowledgeIngestion } from './pages/KnowledgeIngestion';
 import { SearchPage } from './pages/SearchPage';
 import { RoleManagement } from './pages/RoleManagement';
 import { MyDocuments } from './pages/MyDocuments';
@@ -38,10 +37,7 @@ function App() {
           <Route path="/repo" element={<DocumentRepository />} />
           <Route path="/documents/:id" element={<DocumentDetail />} />
           
-          {/* 5. Thu thập, đồng bộ tri thức */}
-          <Route path="/ingestion" element={<KnowledgeIngestion />} />
-          
-          {/* 6. Cộng tác tri thức */}
+          {/* 5. Cộng tác tri thức */}
           <Route path="/feedback" element={<FeedbackList />} />
           
           {/* 7. Tài liệu hết hạn */}

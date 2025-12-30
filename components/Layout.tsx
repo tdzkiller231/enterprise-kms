@@ -52,13 +52,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       icon: Database, 
       path: '/repo'
     },
-    {
-       name: 'Thu thập, đồng bộ tri thức', // 5
-       icon: Radio,
-       path: '/ingestion'
-    },
     { 
-      name: 'Cộng tác tri thức', // 6 (thay cho Góp ý, đánh giá)
+      name: 'Cộng tác tri thức', // 5 (thay cho Góp ý, đánh giá)
       icon: MessageSquare, 
       path: '/feedback'
     },

@@ -1,5 +1,5 @@
 
-import { KMSDocument, DocStatus, Category, Space, User, Comment, ReportStats, ReportFilters, UserActivityStats, DepartmentStats, DocumentActivityLog, AuditLog, SystemPolicy, KnowledgeTopic, DataSource, SyncSchedule, IngestionLog, FeedbackSuggestion, DocumentRating, FeedbackStatus, SearchFilters, SpaceMember, Role, LifecycleStatus, SyncSource, SyncHistory } from '../types';
+import { KMSDocument, DocStatus, Category, Space, User, Comment, ReportStats, ReportFilters, UserActivityStats, DepartmentStats, DocumentActivityLog, AuditLog, SystemPolicy, KnowledgeTopic, DataSource, SyncSchedule, IngestionLog, FeedbackSuggestion, DocumentRating, FeedbackStatus, SearchFilters, SpaceMember, Role, LifecycleStatus, SyncSource, SyncHistory, CollectedDocument, CollectionStatus, CollectionSource } from '../types';
 
 // Mock Data
 const MOCK_USERS: User[] = [
@@ -1408,6 +1408,129 @@ let MOCK_SYNC_HISTORY: SyncHistory[] = [
     triggeredByUser: MOCK_USERS[0],
     errorMessage: 'Connection timeout - không thể kết nối đến Confluence server',
     details: 'Thu thập từ Confluence: https://bsr.atlassian.net/wiki'
+  }
+];
+
+// --- Mock Collected Documents for Knowledge Collection ---
+let MOCK_COLLECTED_DOCUMENTS: CollectedDocument[] = [
+  {
+    id: 'col1',
+    fileName: 'Quy_trinh_bao_tri_thiet_bi.pdf',
+    fileSize: 2450000,
+    source: 'Email',
+    sourceDetail: 'email@kythuat.com - 25/12/2024',
+    collectedBy: 'u3',
+    collectedByName: 'Lê Văn C',
+    collectedAt: '2024-12-25 09:30',
+    status: 'Collected',
+    notes: 'Tài liệu từ email phòng kỹ thuật'
+  },
+  {
+    id: 'col2',
+    fileName: 'Bao_cao_tai_chinh_thang_11.xlsx',
+    fileSize: 1200000,
+    source: 'SharePoint',
+    sourceDetail: 'SharePoint Phòng Tài chính',
+    collectedBy: 'u2',
+    collectedByName: 'Trần Thị B',
+    collectedAt: '2024-12-24 14:15',
+    status: 'Classified',
+    categoryIds: ['c4'],
+    spaceId: 's2',
+    tags: ['taichinh', 'baocao', 'thang11'],
+    effectiveDate: '2024-11-01',
+    expiryDate: '2025-11-30',
+    notes: 'Đã phân loại vào danh mục Tài chính'
+  },
+  {
+    id: 'col3',
+    fileName: 'Huong_dan_su_dung_ERP.docx',
+    fileSize: 3800000,
+    source: 'OneDrive',
+    sourceDetail: 'OneDrive - Shared with me',
+    collectedBy: 'u4',
+    collectedByName: 'Phạm Văn D',
+    collectedAt: '2024-12-23 10:00',
+    status: 'InApproval',
+    categoryIds: ['c3'],
+    spaceId: 's2',
+    tags: ['erp', 'huongdan', 'training'],
+    effectiveDate: '2024-12-20',
+    expiryDate: '2025-12-20',
+    contributorName: 'Nguyễn Thị E - Phòng CNTT',
+    notes: 'Đã gửi phê duyệt - chờ xét duyệt từ Manager'
+  },
+  {
+    id: 'col4',
+    fileName: 'ISO_9001_2015_Guidelines.pdf',
+    fileSize: 5200000,
+    source: 'GoogleDrive',
+    sourceDetail: 'Google Drive - ISO Documents',
+    collectedBy: 'u3',
+    collectedByName: 'Lê Văn C',
+    collectedAt: '2024-12-22 16:45',
+    status: 'Collected',
+    notes: 'Cần review trước khi phân loại'
+  },
+  {
+    id: 'col5',
+    fileName: 'Chinh_sach_nghi_phep_2025.pdf',
+    fileSize: 890000,
+    source: 'Local',
+    sourceDetail: 'Upload từ máy tính cá nhân',
+    collectedBy: 'u2',
+    collectedByName: 'Trần Thị B',
+    collectedAt: '2024-12-21 11:20',
+    status: 'Classified',
+    categoryIds: ['c1', 'c1-2'],
+    spaceId: 's3',
+    tags: ['hr', 'nghiphep', '2025'],
+    effectiveDate: '2025-01-01',
+    expiryDate: '2025-12-31',
+    contributorName: 'Phòng Nhân sự',
+    notes: 'Chính sách nghỉ phép năm 2025'
+  },
+  {
+    id: 'col6',
+    fileName: 'Ban_ve_he_thong_dien.dwg',
+    fileSize: 12500000,
+    source: 'Email',
+    sourceDetail: 'kythuat@company.vn - 20/12/2024',
+    collectedBy: 'u4',
+    collectedByName: 'Phạm Văn D',
+    collectedAt: '2024-12-20 09:00',
+    status: 'Approved',
+    categoryIds: ['c2', 'c2-2'],
+    spaceId: 's1',
+    tags: ['banve', 'dien', 'kythuat'],
+    effectiveDate: '2024-12-15',
+    expiryDate: '2026-12-15',
+    contributorName: 'Kỹ sư Điện - Phòng Kỹ thuật',
+    notes: 'Đã được phê duyệt và lưu vào kho tài liệu'
+  },
+  {
+    id: 'col7',
+    fileName: 'Checklist_kiem_tra_chat_luong.xlsx',
+    fileSize: 620000,
+    source: 'SharePoint',
+    sourceDetail: 'SharePoint QA Team',
+    collectedBy: 'u3',
+    collectedByName: 'Lê Văn C',
+    collectedAt: '2024-12-19 13:30',
+    status: 'Rejected',
+    notes: 'Bị từ chối - Nội dung không đầy đủ, cần bổ sung thêm thông tin'
+  },
+  {
+    id: 'col8',
+    fileName: 'Training_Material_Safety.pptx',
+    fileSize: 8900000,
+    source: 'Other',
+    sourceDetail: 'USB Drive - Training Department',
+    collectedBy: 'u1',
+    collectedByName: 'Nguyễn Văn A',
+    collectedAt: '2024-12-18 15:00',
+    status: 'Discarded',
+    notes: 'Đã loại bỏ - Tài liệu trùng lặp với tài liệu hiện có'
   }
 ];
 
@@ -2907,6 +3030,143 @@ export const KMSService = {
       doc.downloadCount = (doc.downloadCount || 0) + 1;
     }
     return { success: true };
+  },
+
+  // --- Knowledge Collection Methods ---
+  
+  getCollectedDocuments: async (filters?: { 
+    status?: CollectionStatus[];
+    source?: CollectionSource;
+    collectedBy?: string;
+    query?: string;
+  }) => {
+    let docs = [...MOCK_COLLECTED_DOCUMENTS];
+    
+    if (filters?.status && filters.status.length > 0) {
+      docs = docs.filter(d => filters.status?.includes(d.status));
+    }
+    
+    if (filters?.source) {
+      docs = docs.filter(d => d.source === filters.source);
+    }
+    
+    if (filters?.collectedBy) {
+      docs = docs.filter(d => d.collectedBy === filters.collectedBy);
+    }
+    
+    if (filters?.query) {
+      const q = filters.query.toLowerCase();
+      docs = docs.filter(d => 
+        d.fileName.toLowerCase().includes(q) ||
+        (d.notes && d.notes.toLowerCase().includes(q)) ||
+        (d.contributorName && d.contributorName.toLowerCase().includes(q))
+      );
+    }
+    
+    // Sort by collection date (newest first)
+    docs.sort((a, b) => b.collectedAt.localeCompare(a.collectedAt));
+    
+    return docs;
+  },
+
+  uploadCollectedDocuments: async (data: {
+    files: File[];
+    source: CollectionSource;
+    sourceDetail: string;
+    contributorName?: string;
+    collectedBy: string;
+  }) => {
+    const currentUser = MOCK_USERS.find(u => u.id === data.collectedBy);
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 16).replace('T', ' ');
+    
+    const newDocs: CollectedDocument[] = data.files.map(file => ({
+      id: `col${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      fileName: file.name,
+      fileSize: file.size,
+      source: data.source,
+      sourceDetail: data.sourceDetail,
+      collectedBy: data.collectedBy,
+      collectedByName: currentUser?.name || 'Unknown',
+      collectedAt: dateStr,
+      status: 'Collected',
+      contributorName: data.contributorName,
+      notes: `Được tải lên từ ${data.source}`
+    }));
+    
+    MOCK_COLLECTED_DOCUMENTS.push(...newDocs);
+    return newDocs;
+  },
+
+  classifyCollectedDocuments: async (data: {
+    documentIds: string[];
+    categoryIds: string[];
+    spaceId?: string;
+    tags?: string[];
+    effectiveDate?: string;
+    expiryDate?: string;
+    notes?: string;
+  }) => {
+    const docs = MOCK_COLLECTED_DOCUMENTS.filter(d => data.documentIds.includes(d.id));
+    
+    if (docs.length === 0) {
+      throw new Error('Không tìm thấy tài liệu');
+    }
+    
+    docs.forEach(doc => {
+      doc.status = 'Classified';
+      doc.categoryIds = data.categoryIds;
+      doc.spaceId = data.spaceId;
+      doc.tags = data.tags;
+      doc.effectiveDate = data.effectiveDate;
+      doc.expiryDate = data.expiryDate;
+      if (data.notes) {
+        doc.notes = (doc.notes ? doc.notes + '\n' : '') + data.notes;
+      }
+    });
+    
+    return docs;
+  },
+
+  sendToApproval: async (documentIds: string[]) => {
+    const docs = MOCK_COLLECTED_DOCUMENTS.filter(d => documentIds.includes(d.id));
+    
+    if (docs.length === 0) {
+      throw new Error('Không tìm thấy tài liệu');
+    }
+    
+    // Check if all docs are classified
+    const unclassifiedDocs = docs.filter(d => d.status !== 'Classified');
+    if (unclassifiedDocs.length > 0) {
+      throw new Error('Có tài liệu chưa được phân loại. Vui lòng phân loại trước khi gửi duyệt.');
+    }
+    
+    docs.forEach(doc => {
+      doc.status = 'InApproval';
+    });
+    
+    return docs;
+  },
+
+  deleteCollectedDocuments: async (documentIds: string[]) => {
+    documentIds.forEach(id => {
+      const idx = MOCK_COLLECTED_DOCUMENTS.findIndex(d => d.id === id);
+      if (idx !== -1) {
+        // Only allow delete if not yet approved
+        const doc = MOCK_COLLECTED_DOCUMENTS[idx];
+        if (doc.status !== 'Approved') {
+          MOCK_COLLECTED_DOCUMENTS.splice(idx, 1);
+        }
+      }
+    });
+    
+    return { success: true };
+  },
+
+  getCurrentUser: async () => {
+    // In real app: Get from authentication context
+    // For now, return first user (Admin)
+    return MOCK_USERS[0];
   }
 };
 

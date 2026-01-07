@@ -463,3 +463,45 @@ export interface DocumentFollow {
   notifyOnUpdate: boolean;
   notifyOnComment: boolean;
 }
+
+// --- Knowledge Collection Types ---
+export type CollectionStatus = 'Collected' | 'Classified' | 'InApproval' | 'Approved' | 'Rejected' | 'Discarded';
+export type CollectionSource = 'Email' | 'SharePoint' | 'OneDrive' | 'GoogleDrive' | 'Local' | 'Other';
+
+export interface CollectedDocument {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+  filePath?: string;
+  
+  // Source information
+  source: CollectionSource;
+  sourceDetail: string; // Email subject, SharePoint URL, etc.
+  
+  // Collection metadata
+  collectedBy: User;
+  collectedAt: string;
+  contributorName?: string; // Original author from external source
+  
+  // Classification status
+  status: CollectionStatus;
+  classifiedBy?: User;
+  classifiedAt?: string;
+  
+  // Document metadata (filled during classification)
+  title?: string;
+  description?: string;
+  categoryIds?: string[];
+  spaceId?: string;
+  tags?: string[];
+  effectiveDate?: string;
+  expiryDate?: string;
+  
+  // Linked to main document after approval
+  documentId?: string;
+  
+  // Notes and rejection
+  classificationNotes?: string;
+  rejectionReason?: string;
+}

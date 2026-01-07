@@ -14,9 +14,10 @@ import { SystemAdmin } from './pages/SystemAdmin';
 import { FeedbackList } from './pages/FeedbackList';
 import { Reports } from './pages/Reports';
 import { SearchConfig } from './pages/SearchConfig';
-import { SearchPage } from './pages/SearchPage';
+import { AIAgent } from './pages/AIAgent';
 import { RoleManagement } from './pages/RoleManagement';
 import { MyDocuments } from './pages/MyDocuments';
+import { KnowledgeCollection } from './pages/KnowledgeCollection';
 
 function App() {
   return (
@@ -37,14 +38,17 @@ function App() {
           <Route path="/repo" element={<DocumentRepository />} />
           <Route path="/documents/:id" element={<DocumentDetail />} />
           
-          {/* 5. Cộng tác tri thức */}
+          {/* 5. Thu thập tri thức */}
+          <Route path="/knowledge-collection" element={<KnowledgeCollection />} />
+          
+          {/* 6. Cộng tác tri thức */}
           <Route path="/feedback" element={<FeedbackList />} />
           
           {/* 7. Tài liệu hết hạn */}
           <Route path="/expired" element={<ExpiredDocs />} />
           
-          {/* 8. Tìm kiếm tri thức */}
-          <Route path="/search-page" element={<SearchPage />} />
+          {/* 8. AI Agent - Tìm kiếm thông minh */}
+          <Route path="/ai-agent" element={<AIAgent />} />
           
           {/* 9. Phê duyệt tài liệu */}
           <Route path="/approvals" element={<Approvals />} />

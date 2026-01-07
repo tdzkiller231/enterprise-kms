@@ -22,7 +22,8 @@ import {
   ShieldAlert,
   Tag,
   Radio,
-  FileSearch
+  Bot,
+  Upload
 } from 'lucide-react';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -53,7 +54,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       path: '/repo'
     },
     { 
-      name: 'Cộng tác tri thức', // 5 (thay cho Góp ý, đánh giá)
+      name: 'Thu thập tri thức', // 5 (Thu thập từ nguồn ngoài)
+      icon: Upload, 
+      path: '/knowledge-collection'
+    },
+    { 
+      name: 'Cộng tác tri thức', // 6 (thay cho Góp ý, đánh giá)
       icon: MessageSquare, 
       path: '/feedback'
     },
@@ -63,9 +69,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       path: '/expired'
     },
     {
-      name: 'Tìm kiếm tri thức', // 8
-      icon: FileSearch,
-      path: '/search-page'
+      name: 'AI Agent', // 8
+      icon: Bot,
+      path: '/ai-agent'
     },
     { 
       name: 'Phê duyệt tài liệu', // 9

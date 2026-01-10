@@ -3,7 +3,7 @@ import { KMSService } from '../services/kmsService';
 import { ReportStats, ReportFilters, User } from '../types';
 import { Card } from '../components/UI';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
-import { BarChart2, PieChart as PieIcon, TrendingUp, AlertTriangle, Download, Filter, Users, Building2, Calendar, FileText, Eye, Upload, Share2, MessageSquare, RefreshCw } from 'lucide-react';
+import { BarChart2, PieChart as PieIcon, TrendingUp, AlertTriangle, Download, Filter, Users, Building2, Calendar, FileText, Upload, Share2, MessageSquare, RefreshCw, Star } from 'lucide-react';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -54,14 +54,14 @@ export const Reports: React.FC = () => {
     
     // Export based on active tab
     if (activeTab === 'users') {
-      csvContent += "Người dùng,Phòng ban,Lượt xem,Lượt tải,Tải lên,Chia sẻ,Đóng góp\n";
+      csvContent += "Người dùng,Phòng ban,Lượt tải,Tải lên,Chia sẻ,Đóng góp\n";
       data.userActivityStats.forEach(user => {
-        csvContent += `${user.userName},${user.department},${user.viewCount},${user.downloadCount},${user.uploadCount},${user.shareCount},${user.contributionCount}\n`;
+        csvContent += `${user.userName},${user.department},${user.downloadCount},${user.uploadCount},${user.shareCount},${user.contributionCount}\n`;
       });
     } else if (activeTab === 'departments') {
-      csvContent += "Phòng ban,Số thành viên,Lượt xem,Tải lên,Chia sẻ,Điểm đóng góp\n";
+      csvContent += "Phòng ban,Số thành viên,Tải lên,Chia sẻ,Điểm đóng góp\n";
       data.departmentStats.forEach(dept => {
-        csvContent += `${dept.department},${dept.memberCount},${dept.viewCount},${dept.uploadCount},${dept.shareCount},${dept.contributionScore}\n`;
+        csvContent += `${dept.department},${dept.memberCount},${dept.uploadCount},${dept.shareCount},${dept.contributionScore}\n`;
       });
     } else if (activeTab === 'activities') {
       csvContent += "Thời gian,Người dùng,Phòng ban,Hoạt động,Tài liệu\n";
@@ -71,7 +71,6 @@ export const Reports: React.FC = () => {
     } else {
       csvContent += "Tổng quan hệ thống\n";
       csvContent += `Tổng tài liệu,${data.totalDocuments}\n`;
-      csvContent += `Tổng lượt xem,${data.totalViews}\n`;
       csvContent += `Tổng lượt tải,${data.totalDownloads}\n`;
       csvContent += `Tổng chia sẻ,${data.totalShares}\n`;
       csvContent += `Tổng tải lên,${data.totalUploads}\n`;
@@ -93,7 +92,7 @@ export const Reports: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Báo cáo & Thống kê</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Báo cáo Thống kê</h1>
         <button
           onClick={exportToCSV}
           className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
@@ -232,16 +231,6 @@ export const Reports: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90">Lượt xem</p>
-                  <p className="text-3xl font-bold">{data.totalViews}</p>
-                </div>
-                <Eye className="w-10 h-10 opacity-80" />
-              </div>
-            </div>
-            
             <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white">
               <div className="flex items-center justify-between">
                 <div>
@@ -249,6 +238,16 @@ export const Reports: React.FC = () => {
                   <p className="text-3xl font-bold">{data.totalDownloads}</p>
                 </div>
                 <Download className="w-10 h-10 opacity-80" />
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm opacity-90">Tải lên</p>
+                  <p className="text-3xl font-bold">{data.totalUploads}</p>
+                </div>
+                <Upload className="w-10 h-10 opacity-80" />
               </div>
             </div>
             
@@ -262,13 +261,13 @@ export const Reports: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg p-4 text-white">
+            <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg p-4 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm opacity-90">Tải lên</p>
-                  <p className="text-3xl font-bold">{data.totalUploads}</p>
+                  <p className="text-sm opacity-90">Đánh giá</p>
+                  <p className="text-3xl font-bold">{data.totalRatings || 0}</p>
                 </div>
-                <Upload className="w-10 h-10 opacity-80" />
+                <Star className="w-10 h-10 opacity-80" />
               </div>
             </div>
           </div>
@@ -284,9 +283,9 @@ export const Reports: React.FC = () => {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="views" name="Lượt xem" stroke="#3b82f6" strokeWidth={2} />
                     <Line type="monotone" dataKey="downloads" name="Lượt tải" stroke="#10b981" strokeWidth={2} />
                     <Line type="monotone" dataKey="uploads" name="Tải lên" stroke="#f59e0b" strokeWidth={2} />
+                    <Line type="monotone" dataKey="shares" name="Chia sẻ" stroke="#ec4899" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -413,10 +412,7 @@ export const Reports: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Người dùng</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phòng ban</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      <Eye className="w-4 h-4 inline mr-1" />Xem
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      <Download className="w-4 h-4 inline mr-1" />Tải
+                      <Download className="w-4 h-4 inline mr-1" />Tải xuống
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                       <Upload className="w-4 h-4 inline mr-1" />Tải lên
@@ -425,14 +421,15 @@ export const Reports: React.FC = () => {
                       <Share2 className="w-4 h-4 inline mr-1" />Chia sẻ
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      <MessageSquare className="w-4 h-4 inline mr-1" />Đóng góp
+                      <Star className="w-4 h-4 inline mr-1" />Đánh giá
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Tổng điểm</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      <MessageSquare className="w-4 h-4 inline mr-1" />Góp ý
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {data.userActivityStats.map((user, idx) => {
-                    const totalScore = user.viewCount + user.downloadCount * 2 + user.uploadCount * 10 + user.shareCount * 5 + user.contributionCount * 3;
                     return (
                       <tr key={user.userId} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm text-gray-500">
@@ -455,23 +452,16 @@ export const Reports: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">{user.department}</td>
-                        <td className="px-6 py-4 text-right text-sm text-gray-900">{user.viewCount}</td>
                         <td className="px-6 py-4 text-right text-sm text-gray-900">{user.downloadCount}</td>
                         <td className="px-6 py-4 text-right text-sm text-green-600 font-semibold">{user.uploadCount}</td>
                         <td className="px-6 py-4 text-right text-sm text-blue-600 font-semibold">{user.shareCount}</td>
+                        <td className="px-6 py-4 text-right text-sm text-yellow-600 font-semibold">{user.ratingCount || 0}</td>
                         <td className="px-6 py-4 text-right text-sm text-purple-600 font-semibold">{user.contributionCount}</td>
-                        <td className="px-6 py-4 text-right text-sm font-bold text-indigo-600">{totalScore}</td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
-            </div>
-            <div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 text-sm">
-              <p className="font-medium text-blue-800">Công thức tính điểm:</p>
-              <p className="text-blue-700 mt-1">
-                Tổng điểm = Xem (×1) + Tải (×2) + Tải lên (×10) + Chia sẻ (×5) + Đóng góp (×3)
-              </p>
             </div>
           </Card>
         </div>
@@ -487,7 +477,6 @@ export const Reports: React.FC = () => {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phòng ban</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Số thành viên</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Lượt xem</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Tải lên</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Chia sẻ</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Điểm đóng góp</th>
@@ -504,7 +493,6 @@ export const Reports: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right text-sm text-gray-500">{dept.memberCount}</td>
-                      <td className="px-6 py-4 text-right text-sm text-gray-900">{dept.viewCount}</td>
                       <td className="px-6 py-4 text-right text-sm text-green-600 font-semibold">{dept.uploadCount}</td>
                       <td className="px-6 py-4 text-right text-sm text-blue-600 font-semibold">{dept.shareCount}</td>
                       <td className="px-6 py-4 text-right text-sm font-bold text-indigo-600">{dept.contributionScore}</td>

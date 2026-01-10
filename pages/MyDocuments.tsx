@@ -7,7 +7,7 @@ import {
   Edit, Trash2, Send, Search, Calendar
 } from 'lucide-react';
 
-type DocType = 'created' | 'shared' | 'favorite' | 'following';
+type TabType = 'uploaded' | 'shared' | 'commented' | 'expired';
 
 export const MyDocuments: React.FC = () => {
   const [currentUser] = useState<User>({ 
@@ -17,8 +17,10 @@ export const MyDocuments: React.FC = () => {
     avatar: 'https://picsum.photos/32/32?random=1' 
   });
 
-  // Filters (no tabs)
-  const [docType, setDocType] = useState<DocType | ''>('');
+  // Tab state
+  const [activeTab, setActiveTab] = useState<TabType>('uploaded');
+
+  // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSpace, setFilterSpace] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
@@ -26,6 +28,8 @@ export const MyDocuments: React.FC = () => {
   // Data - Documents
   const [myCreatedDocs, setMyCreatedDocs] = useState<KMSDocument[]>([]);
   const [sharedDocs, setSharedDocs] = useState<KMSDocument[]>([]);
+  const [commentedDocs, setCommentedDocs] = useState<KMSDocument[]>([]);
+  const [myExpiredDocs, setMyExpiredDocs] = useState<KMSDocument[]>([]);
   const [favoriteDocs, setFavoriteDocs] = useState<KMSDocument[]>([]);
   const [followingDocs, setFollowingDocs] = useState<KMSDocument[]>([]);
   
@@ -39,11 +43,19 @@ export const MyDocuments: React.FC = () => {
   // Detail View
   const [selectedDoc, setSelectedDoc] = useState<KMSDocument | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  
+  // Update Expired Document
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [updateReason, setUpdateReason] = useState('');
+  const [newExpiryDate, setNewExpiryDate] = useState('');
+  const [newFileVersion, setNewFileVersion] = useState('');
 
   // Stats
   const [stats, setStats] = useState({
     created: 0,
     shared: 0,
+    commented: 0,
+    expired: 0,
     favorite: 0,
     following: 0,
     recentView: 0,
@@ -55,9 +67,11 @@ export const MyDocuments: React.FC = () => {
   }, []);
 
   const loadData = async () => {
-    const [created, shared, fav, following, views, dls, cats, sps, statistics] = await Promise.all([
+    const [created, shared, commented, expired, fav, following, views, dls, cats, sps, statistics] = await Promise.all([
       KMSService.getMyCreatedDocuments(currentUser.id),
       KMSService.getSharedWithMe(currentUser.id),
+      KMSService.getMyCommentedDocuments(currentUser.id),
+      KMSService.getMyExpiredDocuments(currentUser.id),
       KMSService.getMyFavorites(currentUser.id),
       KMSService.getMyFollowing(currentUser.id),
       KMSService.getMyRecentViews(currentUser.id),
@@ -69,6 +83,8 @@ export const MyDocuments: React.FC = () => {
 
     setMyCreatedDocs(created);
     setSharedDocs(shared);
+    setCommentedDocs(commented);
+    setMyExpiredDocs(expired);
     setFavoriteDocs(fav);
     setFollowingDocs(following);
     setRecentViews(views);
@@ -108,25 +124,71 @@ export const MyDocuments: React.FC = () => {
   const getSpaceName = (id: string) => spaces.find(s => s.id === id)?.name || id;
   const getCategoryName = (id: string) => categories.find(c => c.id === id)?.name || id;
 
-  // Combine all docs based on filter
-  const getAllDocs = (): KMSDocument[] => {
-    switch(docType) {
-      case 'created': return myCreatedDocs;
+  const isExpiringSoon = (doc: KMSDocument): boolean => {
+    if (!doc.expiryDate) return false;
+    const expiryTime = new Date(doc.expiryDate).getTime();
+    const now = new Date().getTime();
+    const daysUntilExpiry = (expiryTime - now) / (1000 * 60 * 60 * 24);
+    return daysUntilExpiry > 0 && daysUntilExpiry <= 30; // Sắp hết hạn trong 30 ngày
+  };
+
+  const isExpired = (doc: KMSDocument): boolean => {
+    if (!doc.expiryDate) return false;
+    return new Date(doc.expiryDate).getTime() < new Date().getTime();
+  };
+
+  const getDaysUntilExpiry = (doc: KMSDocument): number => {
+    if (!doc.expiryDate) return 999;
+    const expiryTime = new Date(doc.expiryDate).getTime();
+    const now = new Date().getTime();
+    return Math.ceil((expiryTime - now) / (1000 * 60 * 60 * 24));
+  };
+
+  const handleUpdateExpiredDocument = async () => {
+    if (!selectedDoc || !newExpiryDate || !updateReason.trim()) {
+      alert('Vui lòng nhập đầy đủ thông tin');
+      return;
+    }
+    await KMSService.updateExpiredDocument(selectedDoc.id, {
+      newExpiryDate,
+      reason: updateReason,
+      newVersion: newFileVersion || undefined
+    });
+    alert('Đã cập nhật tài liệu! Tài liệu sẽ đi vào quy trình phê duyệt lại từ đầu.');
+    setUpdateModalOpen(false);
+    setUpdateReason('');
+    setNewExpiryDate('');
+    setNewFileVersion('');
+    loadData();
+  };
+
+  // Get docs based on active tab
+  const getTabDocs = (): KMSDocument[] => {
+    switch(activeTab) {
+      case 'uploaded': return myCreatedDocs;
       case 'shared': return sharedDocs;
-      case 'favorite': return favoriteDocs;
-      case 'following': return followingDocs;
-      default: return [...myCreatedDocs, ...sharedDocs, ...favoriteDocs, ...followingDocs];
+      case 'commented': return commentedDocs;
+      case 'expired': return myExpiredDocs;
+      default: return myCreatedDocs;
     }
   };
 
-  const filteredDocs = getAllDocs().filter(doc => {
+  const filteredDocs = getTabDocs().filter(doc => {
     const matchSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchSpace = filterSpace ? doc.spaceId === filterSpace : true;
     const matchCategory = filterCategory ? doc.categoryId === filterCategory : true;
     return matchSearch && matchSpace && matchCategory;
   });
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (doc: KMSDocument) => {
+    if (isExpired(doc)) {
+      return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded font-medium">Hết hạn</span>;
+    }
+    if (isExpiringSoon(doc)) {
+      const days = getDaysUntilExpiry(doc);
+      return <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded font-medium">Sắp hết hạn ({days} ngày)</span>;
+    }
+    const status = doc.lifecycleStatus || 'Active';
     switch(status) {
       case 'Active':
         return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Hoạt động</span>;
@@ -150,27 +212,85 @@ export const MyDocuments: React.FC = () => {
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-gray-900 mb-1">TÀI LIỆU CỦA TÔI</h1>
         <p className="text-sm text-gray-500">
-          Quản lý tài liệu đã tạo, chia sẻ, yêu thích và theo dõi
+          Quản lý tài liệu đã tạo, chia sẻ, và tài liệu đã góp ý
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-orange-50 border border-orange-200 rounded px-4 py-2">
-          <p className="text-xs text-orange-600 font-medium">ĐÃ TẠO</p>
-          <p className="text-2xl font-bold text-orange-800">{stats.created}</p>
-        </div>
-        <div className="bg-blue-50 border border-blue-200 rounded px-4 py-2">
-          <p className="text-xs text-blue-600 font-medium">ĐƯỢC CHIA SẺ</p>
-          <p className="text-2xl font-bold text-blue-800">{stats.shared}</p>
-        </div>
-        <div className="bg-pink-50 border border-pink-200 rounded px-4 py-2">
-          <p className="text-xs text-pink-600 font-medium">YÊU THÍCH</p>
-          <p className="text-2xl font-bold text-pink-800">{stats.favorite}</p>
-        </div>
-        <div className="bg-purple-50 border border-purple-200 rounded px-4 py-2">
-          <p className="text-xs text-purple-600 font-medium">THEO DÕI</p>
-          <p className="text-2xl font-bold text-purple-800">{stats.following}</p>
+      {/* Tab Navigation */}
+      <div className="mb-6 border-b-2 border-gray-200">
+        <div className="flex gap-1">
+          <button
+            onClick={() => setActiveTab('uploaded')}
+            className={`px-6 py-3 font-medium text-sm border-b-4 transition-all ${
+              activeTab === 'uploaded'
+                ? 'border-orange-600 text-orange-600 bg-orange-50'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Tài liệu đã upload
+              {stats.created > 0 && (
+                <span className="bg-orange-100 text-orange-800 text-xs px-2 py-0.5 rounded-full">
+                  {stats.created}
+                </span>
+              )}
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('shared')}
+            className={`px-6 py-3 font-medium text-sm border-b-4 transition-all ${
+              activeTab === 'shared'
+                ? 'border-blue-600 text-blue-600 bg-blue-50'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Share2 className="w-4 h-4" />
+              Được chia sẻ với tôi
+              {stats.shared > 0 && (
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
+                  {stats.shared}
+                </span>
+              )}
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('commented')}
+            className={`px-6 py-3 font-medium text-sm border-b-4 transition-all ${
+              activeTab === 'commented'
+                ? 'border-green-600 text-green-600 bg-green-50'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Send className="w-4 h-4" />
+              Tài liệu đã góp ý
+              {stats.commented > 0 && (
+                <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">
+                  {stats.commented}
+                </span>
+              )}
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('expired')}
+            className={`px-6 py-3 font-medium text-sm border-b-4 transition-all ${
+              activeTab === 'expired'
+                ? 'border-red-600 text-red-600 bg-red-50'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Tài liệu hết hạn của tôi
+              {stats.expired > 0 && (
+                <span className="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded-full">
+                  {stats.expired}
+                </span>
+              )}
+            </div>
+          </button>
         </div>
       </div>
 
@@ -186,18 +306,6 @@ export const MyDocuments: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-
-        <select
-          className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
-          value={docType}
-          onChange={(e) => setDocType(e.target.value as DocType | '')}
-        >
-          <option value="">Tất cả loại</option>
-          <option value="created">Đã tạo</option>
-          <option value="shared">Được chia sẻ</option>
-          <option value="favorite">Yêu thích</option>
-          <option value="following">Theo dõi</option>
-        </select>
 
         <select
           className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
@@ -242,9 +350,11 @@ export const MyDocuments: React.FC = () => {
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Danh mục
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Trạng thái
-              </th>
+              {activeTab === 'expired' && (
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Trạng thái
+                </th>
+              )}
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Ngày tạo
               </th>
@@ -256,7 +366,7 @@ export const MyDocuments: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredDocs.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
+                <td colSpan={activeTab === 'expired' ? 7 : 6} className="px-4 py-12 text-center text-gray-500">
                   Không có tài liệu nào
                 </td>
               </tr>
@@ -283,9 +393,11 @@ export const MyDocuments: React.FC = () => {
                   <td className="px-4 py-3 text-sm text-gray-700">
                     {getCategoryName(doc.categoryId)}
                   </td>
-                  <td className="px-4 py-3">
-                    {getStatusBadge(doc.lifecycleStatus || 'Active')}
-                  </td>
+                  {activeTab === 'expired' && (
+                    <td className="px-4 py-3">
+                      {getStatusBadge(doc)}
+                    </td>
+                  )}
                   <td className="px-4 py-3 text-sm text-gray-700">
                     {new Date(doc.createdAt).toLocaleDateString('vi-VN')}
                   </td>
@@ -319,22 +431,49 @@ export const MyDocuments: React.FC = () => {
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      {myCreatedDocs.some(d => d.id === doc.id) && (
+                      {activeTab === 'expired' ? (
                         <>
                           <button
-                            className="p-1 hover:bg-gray-100 rounded text-green-600"
-                            title="Sửa"
+                            onClick={() => {
+                              setSelectedDoc(doc);
+                              setUpdateModalOpen(true);
+                            }}
+                            className="p-1 hover:bg-gray-100 rounded text-orange-600"
+                            title="Cập nhật & Gửi duyệt lại"
                           >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteDocument(doc.id)}
-                            className="p-1 hover:bg-gray-100 rounded text-red-600"
-                            title="Xóa"
-                          >
-                            <Trash2 className="w-4 h-4" />
+                            <Send className="w-4 h-4" />
                           </button>
                         </>
+                      ) : (
+                        myCreatedDocs.some(d => d.id === doc.id) && (
+                          <>
+                            {(isExpiringSoon(doc) || isExpired(doc)) && (
+                              <button
+                                onClick={() => {
+                                  setSelectedDoc(doc);
+                                  setUpdateModalOpen(true);
+                                }}
+                                className="p-1 hover:bg-gray-100 rounded text-orange-600"
+                                title="Cập nhật tài liệu"
+                              >
+                                <Send className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button
+                              className="p-1 hover:bg-gray-100 rounded text-green-600"
+                              title="Sửa"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteDocument(doc.id)}
+                              className="p-1 hover:bg-gray-100 rounded text-red-600"
+                              title="Xóa"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        )
                       )}
                     </div>
                   </td>
@@ -343,71 +482,6 @@ export const MyDocuments: React.FC = () => {
             )}
           </tbody>
         </table>
-      </div>
-
-      {/* History Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Recent Views */}
-        <div className="border border-gray-200 rounded">
-          <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-700 uppercase flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Xem gần đây ({stats.recentView})
-            </h2>
-          </div>
-          <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
-            {recentViews.length === 0 ? (
-              <div className="p-6 text-center text-gray-500 text-sm">
-                Chưa có lịch sử xem
-              </div>
-            ) : (
-              recentViews.map((view, idx) => (
-                <div key={idx} className="p-3 hover:bg-gray-50 transition">
-                  <div className="flex items-start gap-2">
-                    <Eye className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 line-clamp-1">{view.documentTitle}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(view.viewedAt).toLocaleString('vi-VN')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Downloads */}
-        <div className="border border-gray-200 rounded">
-          <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-700 uppercase flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Tải xuống ({stats.downloads})
-            </h2>
-          </div>
-          <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
-            {downloads.length === 0 ? (
-              <div className="p-6 text-center text-gray-500 text-sm">
-                Chưa có lịch sử tải
-              </div>
-            ) : (
-              downloads.map((dl, idx) => (
-                <div key={idx} className="p-3 hover:bg-gray-50 transition">
-                  <div className="flex items-start gap-2">
-                    <Download className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 line-clamp-1">{dl.documentTitle}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(dl.downloadedAt).toLocaleString('vi-VN')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Detail Modal */}
@@ -452,6 +526,94 @@ export const MyDocuments: React.FC = () => {
                   {new Date(selectedDoc.createdAt).toLocaleDateString('vi-VN')}
                 </p>
               </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Update Expired Document Modal */}
+      <Modal
+        isOpen={updateModalOpen}
+        onClose={() => {
+          setUpdateModalOpen(false);
+          setUpdateReason('');
+          setNewExpiryDate('');
+          setNewFileVersion('');
+        }}
+        title="Cập nhật tài liệu hết hạn"
+        footer={
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => setUpdateModalOpen(false)}>Hủy</Button>
+            <Button onClick={handleUpdateExpiredDocument}>
+              <Send className="w-4 h-4 mr-2" />
+              Cập nhật & Gửi phê duyệt
+            </Button>
+          </div>
+        }
+      >
+        {selectedDoc && (
+          <div className="space-y-4">
+            <div className="p-3 bg-red-50 border border-red-200 rounded">
+              <p className="text-sm font-medium text-red-900">{selectedDoc.title}</p>
+              <p className="text-xs text-red-700 mt-1">
+                Ngày hết hạn cũ: {selectedDoc.expiryDate ? new Date(selectedDoc.expiryDate).toLocaleDateString('vi-VN') : 'Không có'}
+                {isExpired(selectedDoc) && ' ⚠️ Đã hết hạn'}
+                {isExpiringSoon(selectedDoc) && ` ⚠️ Còn ${getDaysUntilExpiry(selectedDoc)} ngày`}
+              </p>
+            </div>
+
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+              <p className="text-xs text-blue-900">
+                ℹ️ Tài liệu này sẽ được cập nhật và đi vào <strong>quy trình phê duyệt lại từ đầu</strong> (Cấp 1 → Cấp 2 → Cấp 3)
+              </p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Ngày hết hạn mới <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
+                value={newExpiryDate}
+                onChange={(e) => setNewExpiryDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Phiên bản mới (tùy chọn)
+              </label>
+              <input
+                type="text"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
+                value={newFileVersion}
+                onChange={(e) => setNewFileVersion(e.target.value)}
+                placeholder="VD: 2.0, 2024.1, etc."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nội dung cập nhật <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
+                rows={4}
+                value={updateReason}
+                onChange={(e) => setUpdateReason(e.target.value)}
+                placeholder="Mô tả những thay đổi/cập nhật trong phiên bản mới này..."
+              />
+            </div>
+
+            <div className="text-xs text-gray-500 border-t pt-3">
+              <p><strong>Quy trình sau khi cập nhật:</strong></p>
+              <ol className="list-decimal list-inside mt-2 space-y-1">
+                <li>Tài liệu chuyển về trạng thái "Chờ duyệt Cấp 1"</li>
+                <li>Đi qua quy trình phê duyệt 3 cấp</li>
+                <li>Sau khi được phê duyệt đầy đủ, tài liệu sẽ có hiệu lực với ngày hết hạn mới</li>
+              </ol>
             </div>
           </div>
         )}

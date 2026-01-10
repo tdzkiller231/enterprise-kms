@@ -183,11 +183,14 @@ export const DocumentDetail: React.FC = () => {
             <div className="p-6">
               {activeTab === 'info' && (
                 <div className="space-y-6">
-                  {/* Mock File Viewer */}
-                  <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg h-64 flex flex-col items-center justify-center">
-                      <FileText className="w-16 h-16 text-gray-400 mb-2" />
-                      <p className="text-gray-500 font-medium">Xem trước tài liệu ({doc.fileType.toUpperCase()})</p>
-                      <Button variant="ghost" size="sm" className="mt-2">Mở toàn màn hình</Button>
+                  {/* Document Preview Disabled - Technical Constraint */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex flex-col items-center justify-center">
+                      <FileText className="w-16 h-16 text-blue-400 mb-3" />
+                      <p className="text-blue-900 font-medium mb-2">Không hỗ trợ xem trước tài liệu</p>
+                      <p className="text-sm text-blue-600 mb-4 text-center">Vui lòng tải tài liệu về máy để xem nội dung</p>
+                      <Button variant="primary" onClick={() => alert("Downloading...")}>
+                         <Download className="w-4 h-4 mr-2" /> Tải xuống tài liệu
+                      </Button>
                   </div>
 
                   <div>

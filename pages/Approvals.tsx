@@ -8,6 +8,7 @@ import {
 
 type ApprovalLevel = 1 | 2 | 3;
 type SubTabType = 'pending' | 'approved' | 'rejected';
+type DocumentType = 'Tài liệu đào tạo' | 'Tài liệu công ty';
 
 export const Approvals: React.FC = () => {
   const [currentUser] = useState<User>({ 
@@ -18,6 +19,7 @@ export const Approvals: React.FC = () => {
   });
 
   // Tab state
+  const [documentType, setDocumentType] = useState<DocumentType>('Tài liệu đào tạo');
   const [activeLevel, setActiveLevel] = useState<ApprovalLevel>(1);
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>('pending');
   
@@ -63,7 +65,7 @@ export const Approvals: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [documentType]);
 
   const loadData = async () => {
     const [allDocs, sps, cats] = await Promise.all([
@@ -72,20 +74,26 @@ export const Approvals: React.FC = () => {
       KMSService.getCategories()
     ]);
     
+    // Filter by document type
+    const filteredByType = allDocs.filter(d => {
+      const docType = (d as any).documentType || 'Tài liệu đào tạo';
+      return docType === documentType;
+    });
+    
     // Level 1 - Chuyên gia danh mục
-    const l1Pending = allDocs.filter(d => d.lifecycleStatus === 'PendingLevel1');
-    const l1Approved = allDocs.filter(d => d.lifecycleStatus === 'ApprovedLevel1' || d.lifecycleStatus === 'PendingLevel2');
-    const l1Rejected = allDocs.filter(d => d.lifecycleStatus === 'RejectedLevel1');
+    const l1Pending = filteredByType.filter(d => d.lifecycleStatus === 'PendingLevel1');
+    const l1Approved = filteredByType.filter(d => d.lifecycleStatus === 'ApprovedLevel1' || d.lifecycleStatus === 'PendingLevel2');
+    const l1Rejected = filteredByType.filter(d => d.lifecycleStatus === 'RejectedLevel1');
     
     // Level 2 - Quản lý phòng ban  
-    const l2Pending = allDocs.filter(d => d.lifecycleStatus === 'PendingLevel2');
-    const l2Approved = allDocs.filter(d => d.lifecycleStatus === 'ApprovedLevel2' || d.lifecycleStatus === 'PendingLevel3');
-    const l2Rejected = allDocs.filter(d => d.lifecycleStatus === 'RejectedLevel2');
+    const l2Pending = filteredByType.filter(d => d.lifecycleStatus === 'PendingLevel2');
+    const l2Approved = filteredByType.filter(d => d.lifecycleStatus === 'ApprovedLevel2' || d.lifecycleStatus === 'PendingLevel3');
+    const l2Rejected = filteredByType.filter(d => d.lifecycleStatus === 'RejectedLevel2');
     
     // Level 3 - Giám đốc/Admin
-    const l3Pending = allDocs.filter(d => d.lifecycleStatus === 'PendingLevel3');
-    const l3Approved = allDocs.filter(d => d.lifecycleStatus === 'ApprovedLevel3' || d.lifecycleStatus === 'Active');
-    const l3Rejected = allDocs.filter(d => d.lifecycleStatus === 'RejectedLevel3');
+    const l3Pending = filteredByType.filter(d => d.lifecycleStatus === 'PendingLevel3');
+    const l3Approved = filteredByType.filter(d => d.lifecycleStatus === 'ApprovedLevel3' || d.lifecycleStatus === 'Active');
+    const l3Rejected = filteredByType.filter(d => d.lifecycleStatus === 'RejectedLevel3');
     
     setLevel1PendingDocs(l1Pending);
     setLevel1ApprovedDocs(l1Approved);
@@ -119,8 +127,13 @@ export const Approvals: React.FC = () => {
     if (!selectedDoc) return;
     setIsProcessing(true);
     try {
+      const docType = (selectedDoc as any).documentType || 'Tài liệu đào tạo';
       await KMSService.approveLevel1(selectedDoc.id);
-      alert('Đã phê duyệt cấp 1!\nTài liệu chuyển sang chờ phê duyệt cấp 2.');
+      if (docType === 'Tài liệu công ty') {
+        alert('Đã phê duyệt cấp 1!\nTài liệu công ty chuyển thẳng sang chờ phê duyệt Giám đốc (cấp 2).');
+      } else {
+        alert('Đã phê duyệt cấp 1!\nTài liệu chuyển sang chờ phê duyệt Chuyên gia (cấp 2).');
+      }
       setDetailOpen(false);
       loadData();
     } finally {
@@ -132,8 +145,13 @@ export const Approvals: React.FC = () => {
     if (!selectedDoc) return;
     setIsProcessing(true);
     try {
+      const docType = (selectedDoc as any).documentType || 'Tài liệu đào tạo';
       await KMSService.approveLevel2(selectedDoc.id);
-      alert('Đã phê duyệt cấp 2!\nTài liệu chuyển sang chờ phê duyệt cấp 3.');
+      if (docType === 'Tài liệu công ty') {
+        alert('Đã phê duyệt cấp 2 (Giám đốc)!\nTài liệu đã được đưa vào Kho Tri Thức chính thức.');
+      } else {
+        alert('Đã phê duyệt cấp 2 (Chuyên gia)!\nTài liệu chuyển sang chờ phê duyệt Giám đốc (cấp 3).');
+      }
       setDetailOpen(false);
       loadData();
     } finally {
@@ -243,9 +261,17 @@ export const Approvals: React.FC = () => {
   };
 
   const getLevelInfo = (level: ApprovalLevel) => {
-    if (level === 1) return { title: 'Cấp 1: Quản lý Phòng ban', role: 'Quản lý phòng ban' };
-    if (level === 2) return { title: 'Cấp 2: Chuyên gia Danh mục', role: 'Chuyên gia danh mục' };
-    return { title: 'Cấp 3: Giám đốc/Admin', role: 'Giám đốc/Admin' };
+    if (documentType === 'Tài liệu công ty') {
+      // Tài liệu công ty: 2 cấp (Quản lý -> Giám đốc)
+      if (level === 1) return { title: 'Cấp 1: Quản lý Phòng ban', role: 'Quản lý phòng ban' };
+      if (level === 2) return { title: 'Cấp 2: Giám đốc/Admin', role: 'Giám đốc/Admin' };
+      return { title: 'Cấp 3: Không áp dụng', role: 'N/A' };
+    } else {
+      // Tài liệu đào tạo: 3 cấp (Quản lý -> Chuyên gia -> Giám đốc)
+      if (level === 1) return { title: 'Cấp 1: Quản lý Phòng ban', role: 'Quản lý phòng ban' };
+      if (level === 2) return { title: 'Cấp 2: Chuyên gia Danh mục', role: 'Chuyên gia danh mục' };
+      return { title: 'Cấp 3: Giám đốc/Admin', role: 'Giám đốc/Admin' };
+    }
   };
 
   const color = getLevelColor(activeLevel);
@@ -257,8 +283,36 @@ export const Approvals: React.FC = () => {
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-gray-900 mb-1">PHÊ DUYỆT TÀI LIỆU KHO TRI THỨC</h1>
         <p className="text-sm text-gray-500">
-          Quy trình phê duyệt 3 cấp: Quản lý Phòng ban → Chuyên gia Danh mục → Giám đốc/Admin
+          {documentType === 'Tài liệu đào tạo' 
+            ? 'Quy trình phê duyệt 3 cấp: Quản lý Phòng ban → Chuyên gia Danh mục → Giám đốc/Admin'
+            : 'Quy trình phê duyệt 2 cấp: Quản lý Phòng ban → Giám đốc/Admin'}
         </p>
+      </div>
+
+      {/* Document Type Tabs */}
+      <div className="mb-6 border-b-2 border-gray-200">
+        <div className="flex gap-1">
+          <button
+            onClick={() => { setDocumentType('Tài liệu đào tạo'); setActiveLevel(1); setActiveSubTab('pending'); }}
+            className={`px-6 py-3 font-medium text-sm border-b-4 transition-all ${
+              documentType === 'Tài liệu đào tạo'
+                ? 'border-indigo-600 text-indigo-600 bg-indigo-50'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            📚 Phê duyệt tài liệu đào tạo
+          </button>
+          <button
+            onClick={() => { setDocumentType('Tài liệu công ty'); setActiveLevel(1); setActiveSubTab('pending'); }}
+            className={`px-6 py-3 font-medium text-sm border-b-4 transition-all ${
+              documentType === 'Tài liệu công ty'
+                ? 'border-green-600 text-green-600 bg-green-50'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            🏢 Phê duyệt tài liệu công ty
+          </button>
+        </div>
       </div>
 
       {/* Level Tabs */}
@@ -286,38 +340,48 @@ export const Approvals: React.FC = () => {
             onClick={() => { setActiveLevel(2); setActiveSubTab('pending'); }}
             className={`pb-3 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
               activeLevel === 2
-                ? 'border-purple-500 text-purple-600'
+                ? (documentType === 'Tài liệu công ty' ? 'border-orange-500 text-orange-600' : 'border-purple-500 text-purple-600')
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">
+            <div className={`w-6 h-6 rounded-full ${
+              documentType === 'Tài liệu công ty' 
+                ? 'bg-orange-100 text-orange-700' 
+                : 'bg-purple-100 text-purple-700'
+            } flex items-center justify-center text-xs font-bold`}>
               2
             </div>
-            Cấp 2: Chuyên gia
+            {documentType === 'Tài liệu công ty' ? 'Cấp 2: Giám đốc' : 'Cấp 2: Chuyên gia'}
             {(stats.level2Pending + stats.level2Approved) > 0 && (
-              <span className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full">
+              <span className={`${
+                documentType === 'Tài liệu công ty' 
+                  ? 'bg-orange-100 text-orange-800' 
+                  : 'bg-purple-100 text-purple-800'
+              } text-xs px-2 py-0.5 rounded-full`}>
                 {stats.level2Pending + stats.level2Approved}
               </span>
             )}
           </button>
-          <button
-            onClick={() => { setActiveLevel(3); setActiveSubTab('pending'); }}
-            className={`pb-3 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
-              activeLevel === 3
-                ? 'border-orange-500 text-orange-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <div className="w-6 h-6 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-xs font-bold">
-              3
-            </div>
-            Cấp 3: Giám đốc
-            {(stats.level3Pending + stats.level3Approved) > 0 && (
-              <span className="bg-orange-100 text-orange-800 text-xs px-2 py-0.5 rounded-full">
-                {stats.level3Pending + stats.level3Approved}
-              </span>
-            )}
-          </button>
+          {documentType === 'Tài liệu đào tạo' && (
+            <button
+              onClick={() => { setActiveLevel(3); setActiveSubTab('pending'); }}
+              className={`pb-3 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
+                activeLevel === 3
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <div className="w-6 h-6 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-xs font-bold">
+                3
+              </div>
+              Cấp 3: Giám đốc
+              {(stats.level3Pending + stats.level3Approved) > 0 && (
+                <span className="bg-orange-100 text-orange-800 text-xs px-2 py-0.5 rounded-full">
+                  {stats.level3Pending + stats.level3Approved}
+                </span>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -411,7 +475,8 @@ export const Approvals: React.FC = () => {
                 <p className="text-xs">
                   • <strong>Vai trò:</strong> {levelInfo.role} phê duyệt tài liệu<br />
                   • <strong>Sau khi duyệt:</strong> Tài liệu chuyển sang cấp phê duyệt tiếp theo<br />
-                  {activeLevel === 3 && '• Đây là cấp phê duyệt cuối cùng trước khi tài liệu vào kho tri thức chính thức'}
+                  {documentType === 'Tài liệu đào tạo' && activeLevel === 3 && '• Đây là cấp phê duyệt cuối cùng trước khi tài liệu vào kho tri thức chính thức'}
+                  {documentType === 'Tài liệu công ty' && activeLevel === 2 && '• Đây là cấp phê duyệt cuối cùng trước khi tài liệu vào kho tri thức chính thức'}
                 </p>
               </>
             ) : activeSubTab === 'approved' ? (
@@ -419,8 +484,9 @@ export const Approvals: React.FC = () => {
                 <p className="font-medium mb-1">Tài liệu đã phê duyệt {levelInfo.title}</p>
                 <p className="text-xs">
                   • Danh sách các tài liệu đã được phê duyệt ở cấp {activeLevel}<br />
-                  {activeLevel < 3 && '• Tài liệu sẽ chuyển sang cấp phê duyệt tiếp theo'}
-                  {activeLevel === 3 && '• Tài liệu đã vào kho tri thức chính thức, toàn tổ chức có thể truy cập'}
+                  {documentType === 'Tài liệu đào tạo' && activeLevel < 3 && '• Tài liệu sẽ chuyển sang cấp phê duyệt tiếp theo'}
+                  {documentType === 'Tài liệu công ty' && activeLevel < 2 && '• Tài liệu sẽ chuyển sang cấp phê duyệt tiếp theo'}
+                  {((documentType === 'Tài liệu đào tạo' && activeLevel === 3) || (documentType === 'Tài liệu công ty' && activeLevel === 2)) && '• Tài liệu đã vào kho tri thức chính thức, toàn tổ chức có thể truy cập'}
                 </p>
               </>
             ) : (
@@ -438,7 +504,9 @@ export const Approvals: React.FC = () => {
 
       {/* Process Flow Indicator */}
       <div className="mb-4 p-4 bg-gray-50 rounded border border-gray-200">
-        <p className="text-xs font-medium text-gray-600 mb-3">QUY TRÌNH PHÊ DUYỆT 3 CẤP</p>
+        <p className="text-xs font-medium text-gray-600 mb-3">
+          {documentType === 'Tài liệu đào tạo' ? 'QUY TRÌNH PHÊ DUYỆT 3 CẤP' : 'QUY TRÌNH PHÊ DUYỆT 2 CẤP'}
+        </p>
         <div className="flex items-center gap-2">
           <div className={`flex items-center gap-2 px-3 py-2 rounded ${
             activeLevel === 1 ? 'bg-blue-100 border-2 border-blue-500' : 'bg-white border border-gray-300'
@@ -449,23 +517,36 @@ export const Approvals: React.FC = () => {
             <span className="text-xs font-medium">Quản lý</span>
           </div>
           <ChevronRight className="w-4 h-4 text-gray-400" />
-          <div className={`flex items-center gap-2 px-3 py-2 rounded ${
-            activeLevel === 2 ? 'bg-purple-100 border-2 border-purple-500' : 'bg-white border border-gray-300'
-          }`}>
-            <div className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold">
-              2
+          {documentType === 'Tài liệu đào tạo' ? (
+            <>
+              <div className={`flex items-center gap-2 px-3 py-2 rounded ${
+                activeLevel === 2 ? 'bg-purple-100 border-2 border-purple-500' : 'bg-white border border-gray-300'
+              }`}>
+                <div className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold">
+                  2
+                </div>
+                <span className="text-xs font-medium">Chuyên gia</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+              <div className={`flex items-center gap-2 px-3 py-2 rounded ${
+                activeLevel === 3 ? 'bg-orange-100 border-2 border-orange-500' : 'bg-white border border-gray-300'
+              }`}>
+                <div className="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold">
+                  3
+                </div>
+                <span className="text-xs font-medium">Giám đốc</span>
+              </div>
+            </>
+          ) : (
+            <div className={`flex items-center gap-2 px-3 py-2 rounded ${
+              activeLevel === 2 ? 'bg-orange-100 border-2 border-orange-500' : 'bg-white border border-gray-300'
+            }`}>
+              <div className="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold">
+                2
+              </div>
+              <span className="text-xs font-medium">Giám đốc</span>
             </div>
-            <span className="text-xs font-medium">Chuyên gia</span>
-          </div>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
-          <div className={`flex items-center gap-2 px-3 py-2 rounded ${
-            activeLevel === 3 ? 'bg-orange-100 border-2 border-orange-500' : 'bg-white border border-gray-300'
-          }`}>
-            <div className="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold">
-              3
-            </div>
-            <span className="text-xs font-medium">Giám đốc</span>
-          </div>
+          )}
           <ChevronRight className="w-4 h-4 text-gray-400" />
           <div className="flex items-center gap-2 px-3 py-2 rounded bg-green-50 border border-green-300">
             <Database className="w-4 h-4 text-green-600" />
@@ -674,6 +755,15 @@ export const Approvals: React.FC = () => {
               <p className="text-sm font-medium text-gray-900 mt-1">{selectedDoc.title}</p>
             </div>
             <div>
+              <label className="text-xs text-gray-500 uppercase font-medium">Loại tài liệu</label>
+              <p className="text-sm text-gray-900 mt-1">
+                {((selectedDoc as any).documentType || 'Tài liệu đào tạo') === 'Tài liệu đào tạo' ? '📚 Tài liệu đào tạo' : '🏢 Tài liệu công ty'}
+                {((selectedDoc as any).documentType || 'Tài liệu đào tạo') === 'Tài liệu công ty' && (
+                  <span className="ml-2 text-xs text-orange-600 font-medium">(Phê duyệt 2 cấp)</span>
+                )}
+              </p>
+            </div>
+            <div>
               <label className="text-xs text-gray-500 uppercase font-medium">Tóm tắt</label>
               <p className="text-sm text-gray-700 mt-1">{selectedDoc.summary}</p>
             </div>
@@ -710,7 +800,7 @@ export const Approvals: React.FC = () => {
                   </div>
                   <div className="flex-1">
                     <p className="text-xs font-medium text-gray-900">
-                      {selectedDoc.approverLevel1Name || 'Chưa duyệt'}
+                      Cấp 1: Quản lý Phòng ban - {selectedDoc.approverLevel1Name || 'Chưa duyệt'}
                     </p>
                     <p className="text-xs text-gray-600">
                       {selectedDoc.approverLevel1Date ? new Date(selectedDoc.approverLevel1Date).toLocaleString('vi-VN') : 'Chờ phê duyệt'}
@@ -721,39 +811,60 @@ export const Approvals: React.FC = () => {
                   )}
                 </div>
                 
-                <div className="flex items-center gap-3 p-2 bg-purple-50 rounded">
-                  <div className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold">
-                    2
+                {((selectedDoc as any).documentType || 'Tài liệu đào tạo') === 'Tài liệu đào tạo' ? (
+                  <>
+                    <div className="flex items-center gap-3 p-2 bg-purple-50 rounded">
+                      <div className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold">
+                        2
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-gray-900">
+                          Cấp 2: Chuyên gia Danh mục - {selectedDoc.approverLevel2Name || 'Chưa duyệt'}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          {selectedDoc.approverLevel2Date ? new Date(selectedDoc.approverLevel2Date).toLocaleString('vi-VN') : 'Chờ phê duyệt'}
+                        </p>
+                      </div>
+                      {selectedDoc.approverLevel2Date && (
+                        <Check className="w-4 h-4 text-green-600" />
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-3 p-2 bg-orange-50 rounded">
+                      <div className="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold">
+                        3
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-gray-900">
+                          Cấp 3: Giám đốc/Admin - {selectedDoc.approverLevel3Name || 'Chưa duyệt'}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          {selectedDoc.approverLevel3Date ? new Date(selectedDoc.approverLevel3Date).toLocaleString('vi-VN') : 'Chờ phê duyệt'}
+                        </p>
+                      </div>
+                      {selectedDoc.approverLevel3Date && (
+                        <Check className="w-4 h-4 text-green-600" />
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-3 p-2 bg-orange-50 rounded">
+                    <div className="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold">
+                      2
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-gray-900">
+                        Cấp 2: Giám đốc/Admin - {selectedDoc.approverLevel2Name || 'Chưa duyệt'}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {selectedDoc.approverLevel2Date ? new Date(selectedDoc.approverLevel2Date).toLocaleString('vi-VN') : 'Chờ phê duyệt'}
+                      </p>
+                    </div>
+                    {selectedDoc.approverLevel2Date && (
+                      <Check className="w-4 h-4 text-green-600" />
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-gray-900">
-                      {selectedDoc.approverLevel2Name || 'Chưa duyệt'}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      {selectedDoc.approverLevel2Date ? new Date(selectedDoc.approverLevel2Date).toLocaleString('vi-VN') : 'Chờ phê duyệt'}
-                    </p>
-                  </div>
-                  {selectedDoc.approverLevel2Date && (
-                    <Check className="w-4 h-4 text-green-600" />
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-3 p-2 bg-orange-50 rounded">
-                  <div className="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold">
-                    3
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-gray-900">
-                      {selectedDoc.approverLevel3Name || 'Chưa duyệt'}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      {selectedDoc.approverLevel3Date ? new Date(selectedDoc.approverLevel3Date).toLocaleString('vi-VN') : 'Chờ phê duyệt'}
-                    </p>
-                  </div>
-                  {selectedDoc.approverLevel3Date && (
-                    <Check className="w-4 h-4 text-green-600" />
-                  )}
-                </div>
+                )}
               </div>
             </div>
 

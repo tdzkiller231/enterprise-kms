@@ -28,6 +28,7 @@ export const DocumentFormModal: React.FC<DocumentFormModalProps> = ({
   const [form, setForm] = useState({
     title: '',
     summary: '',
+    documentType: 'Tài liệu đào tạo' as 'Tài liệu đào tạo' | 'Tài liệu công ty',
     categoryIds: [] as string[],
     tags: [] as string[],
     source: 'Nội bộ',
@@ -46,6 +47,7 @@ export const DocumentFormModal: React.FC<DocumentFormModalProps> = ({
         setForm({
           title: document.title,
           summary: document.summary,
+          documentType: (document as any).documentType || 'Tài liệu đào tạo',
           categoryIds: document.categoryIds || (document.categoryId ? [document.categoryId] : []),
           tags: document.tags,
           source: document.source,
@@ -72,6 +74,7 @@ export const DocumentFormModal: React.FC<DocumentFormModalProps> = ({
     setForm({
       title: '',
       summary: '',
+      documentType: 'Tài liệu đào tạo',
       categoryIds: [],
       tags: [],
       source: 'Nội bộ',
@@ -106,6 +109,7 @@ export const DocumentFormModal: React.FC<DocumentFormModalProps> = ({
       source: form.source,
       effectiveDate: form.effectiveDate || undefined,
       expiryDate: form.expiryDate || undefined,
+      ...(form.documentType && { documentType: form.documentType })
     };
 
     if (document) {
@@ -223,6 +227,37 @@ export const DocumentFormModal: React.FC<DocumentFormModalProps> = ({
             placeholder="Mô tả ngắn gọn nội dung tài liệu (tối ưu cho tìm kiếm)..."
           />
           {errors.summary && <p className="text-sm text-red-500 mt-1">{errors.summary}</p>}
+        </div>
+
+        {/* Document Type */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Loại tài liệu <span className="text-red-500">*</span>
+          </label>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="radio"
+                name="documentType"
+                value="Tài liệu đào tạo"
+                checked={form.documentType === 'Tài liệu đào tạo'}
+                onChange={(e) => setForm({ ...form, documentType: e.target.value as any })}
+                className="text-indigo-600 focus:ring-indigo-500"
+              />
+              <span className="text-sm">Tài liệu đào tạo</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="radio"
+                name="documentType"
+                value="Tài liệu công ty"
+                checked={form.documentType === 'Tài liệu công ty'}
+                onChange={(e) => setForm({ ...form, documentType: e.target.value as any })}
+                className="text-indigo-600 focus:ring-indigo-500"
+              />
+              <span className="text-sm">Tài liệu công ty</span>
+            </label>
+          </div>
         </div>
 
         {/* Categories */}

@@ -298,6 +298,426 @@ const MOCK_DISCUSSIONS: Comment[] = [
 ];
 
 let MOCK_DOCS: KMSDocument[] = [
+  // --- Tài liệu của u1 (Nguyễn Văn A) ---
+  {
+    id: 'my_doc_1',
+    title: 'Quy trình Quản lý Dự án 2026',
+    description: 'Hướng dẫn quy trình quản lý dự án phần mềm theo Agile/Scrum.',
+    summary: 'Tài liệu mô tả chi tiết các bước trong quy trình Agile: sprint planning, daily standup, retrospective và demo.',
+    categoryIds: ['c2'],
+    categoryId: 'c2',
+    spaceId: 's1',
+    createdBy: MOCK_USERS[0], // u1
+    createdAt: '2026-01-05',
+    effectiveDate: '2026-01-10',
+    expiryDate: '2027-01-10',
+    status: DocStatus.APPROVED,
+    lifecycleStatus: 'Active' as LifecycleStatus,
+    versions: [
+      { version: '1.0', updatedAt: '2026-01-05', updatedBy: 'Nguyễn Văn A', changeLog: 'Phát hành' }
+    ],
+    tags: ['agile', 'project-management', 'scrum'],
+    viewCount: 120,
+    downloadCount: 35,
+    comments: [
+      { 
+        id: 'cmt_my1', 
+        user: MOCK_USERS[2], 
+        content: 'Tài liệu này rất chi tiết và dễ hiểu, cảm ơn anh!', 
+        createdAt: '2026-01-06 10:00', 
+        docId: 'my_doc_1',
+        docTitle: 'Quy trình Quản lý Dự án 2026',
+        parentId: null
+      }
+    ],
+    fileType: 'pdf',
+    isShared: true,
+    source: 'Nội bộ',
+    avgRating: 4.7,
+    ratingCount: 18,
+    approvalDate: '2026-01-06',
+    approverName: 'Trần Thị B'
+  },
+  {
+    id: 'my_doc_2',
+    title: 'Hướng dẫn Sử dụng API Gateway',
+    description: 'Tài liệu kỹ thuật về API Gateway và microservices.',
+    summary: 'Hướng dẫn cấu hình, authentication, rate limiting và monitoring cho API Gateway trong kiến trúc microservices.',
+    categoryIds: ['c2', 'c2-1'],
+    categoryId: 'c2',
+    spaceId: 's1',
+    createdBy: MOCK_USERS[0], // u1
+    createdAt: '2026-01-03',
+    effectiveDate: '2026-01-05',
+    expiryDate: '2027-06-30',
+    status: DocStatus.APPROVED,
+    lifecycleStatus: 'Active' as LifecycleStatus,
+    versions: [
+      { version: '2.1', updatedAt: '2026-01-03', updatedBy: 'Nguyễn Văn A', changeLog: 'Thêm phần monitoring' },
+      { version: '2.0', updatedAt: '2025-12-20', updatedBy: 'Nguyễn Văn A', changeLog: 'Cập nhật cho version mới' }
+    ],
+    tags: ['api', 'microservices', 'gateway', 'technical'],
+    viewCount: 245,
+    downloadCount: 67,
+    comments: [
+      { 
+        id: 'cmt_my2', 
+        user: MOCK_USERS[3], 
+        content: 'Phần rate limiting có thể giải thích rõ hơn không anh?', 
+        createdAt: '2026-01-04 15:30', 
+        docId: 'my_doc_2',
+        docTitle: 'Hướng dẫn Sử dụng API Gateway',
+        parentId: null
+      }
+    ],
+    fileType: 'pdf',
+    isShared: true,
+    source: 'Nội bộ',
+    avgRating: 4.5,
+    ratingCount: 22,
+    approvalDate: '2026-01-04',
+    approverName: 'Trần Thị B'
+  },
+  {
+    id: 'my_doc_3',
+    title: 'Chính sách Coding Standards',
+    description: 'Quy tắc viết code và best practices cho team.',
+    summary: 'Tài liệu mô tả coding conventions, naming conventions, code review process và các best practices trong lập trình.',
+    categoryIds: ['c2'],
+    categoryId: 'c2',
+    spaceId: 's1',
+    createdBy: MOCK_USERS[0], // u1
+    createdAt: '2025-12-28',
+    effectiveDate: '2026-01-01',
+    expiryDate: '2026-12-31',
+    status: DocStatus.APPROVED,
+    lifecycleStatus: 'Active' as LifecycleStatus,
+    versions: [
+      { version: '3.0', updatedAt: '2025-12-28', updatedBy: 'Nguyễn Văn A', changeLog: 'Cập nhật cho năm 2026' }
+    ],
+    tags: ['coding', 'standards', 'best-practices'],
+    viewCount: 450,
+    downloadCount: 125,
+    comments: [],
+    fileType: 'pdf',
+    isShared: true,
+    source: 'Nội bộ',
+    avgRating: 4.8,
+    ratingCount: 45,
+    approvalDate: '2025-12-29',
+    approverName: 'Trần Thị B'
+  },
+  {
+    id: 'my_expired_1',
+    title: 'Quy định Bảo mật Dữ liệu 2025',
+    description: 'Chính sách bảo mật và xử lý dữ liệu cá nhân.',
+    summary: 'Hướng dẫn quy định về bảo mật, quyền riêng tư và xử lý dữ liệu theo GDPR và luật bảo vệ dữ liệu Việt Nam.',
+    categoryIds: ['c1'],
+    categoryId: 'c1',
+    spaceId: 's3',
+    createdBy: MOCK_USERS[0], // u1
+    createdAt: '2025-01-10',
+    effectiveDate: '2025-02-01',
+    expiryDate: '2025-12-31', // Đã hết hạn
+    status: DocStatus.EXPIRED,
+    lifecycleStatus: 'Expired' as LifecycleStatus,
+    versions: [
+      { version: '1.5', updatedAt: '2025-06-15', updatedBy: 'Nguyễn Văn A', changeLog: 'Cập nhật theo luật mới' },
+      { version: '1.0', updatedAt: '2025-01-10', updatedBy: 'Nguyễn Văn A', changeLog: 'Phát hành' }
+    ],
+    tags: ['security', 'data-protection', 'policy'],
+    viewCount: 890,
+    downloadCount: 234,
+    comments: [],
+    fileType: 'pdf',
+    source: 'Nội bộ',
+    avgRating: 4.6,
+    ratingCount: 67,
+    approvalDate: '2025-01-15',
+    approverName: 'Trần Thị B'
+  },
+  {
+    id: 'my_expired_2',
+    title: 'Hướng dẫn Backup & Recovery 2024',
+    description: 'Quy trình sao lưu và phục hồi dữ liệu hệ thống.',
+    summary: 'Tài liệu mô tả chiến lược backup, lịch sao lưu tự động và các bước phục hồi dữ liệu khi có sự cố.',
+    categoryIds: ['c2'],
+    categoryId: 'c2',
+    spaceId: 's1',
+    createdBy: MOCK_USERS[0], // u1
+    createdAt: '2024-03-01',
+    effectiveDate: '2024-03-15',
+    expiryDate: '2025-03-15', // Đã hết hạn
+    status: DocStatus.EXPIRED,
+    lifecycleStatus: 'Expired' as LifecycleStatus,
+    versions: [
+      { version: '2.0', updatedAt: '2024-09-20', updatedBy: 'Nguyễn Văn A', changeLog: 'Thêm cloud backup' },
+      { version: '1.0', updatedAt: '2024-03-01', updatedBy: 'Nguyễn Văn A', changeLog: 'Phiên bản đầu' }
+    ],
+    tags: ['backup', 'recovery', 'disaster-recovery'],
+    viewCount: 567,
+    downloadCount: 143,
+    comments: [],
+    fileType: 'pdf',
+    source: 'Nội bộ',
+    avgRating: 4.4,
+    ratingCount: 34,
+    approvalDate: '2024-03-10',
+    approverName: 'Trần Thị B'
+  },
+  {
+    id: 'my_expired_3',
+    title: 'Chính sách Remote Work 2023',
+    description: 'Quy định làm việc từ xa trong thời kỳ COVID-19.',
+    summary: 'Hướng dẫn các quy định, công cụ hỗ trợ và quy trình làm việc từ xa cho toàn bộ nhân viên.',
+    categoryIds: ['c1', 'c1-1'],
+    categoryId: 'c1',
+    spaceId: 's3',
+    createdBy: MOCK_USERS[0], // u1
+    createdAt: '2023-04-01',
+    effectiveDate: '2023-05-01',
+    expiryDate: '2024-12-31', // Đã hết hạn
+    status: DocStatus.EXPIRED,
+    lifecycleStatus: 'Expired' as LifecycleStatus,
+    versions: [
+      { version: '1.2', updatedAt: '2024-01-10', updatedBy: 'Nguyễn Văn A', changeLog: 'Điều chỉnh chính sách' },
+      { version: '1.0', updatedAt: '2023-04-01', updatedBy: 'Nguyễn Văn A', changeLog: 'Ban hành' }
+    ],
+    tags: ['remote', 'wfh', 'policy', 'covid'],
+    viewCount: 1245,
+    downloadCount: 456,
+    comments: [],
+    fileType: 'pdf',
+    source: 'Nội bộ',
+    avgRating: 4.3,
+    ratingCount: 89,
+    approvalDate: '2023-04-15',
+    approverName: 'Trần Thị B'
+  },
+  // --- Tài liệu được chia sẻ với u1 ---
+  {
+    id: 'shared_with_me_1',
+    title: 'Kế hoạch Marketing Q1 2026',
+    description: 'Chiến lược marketing và các campaign cho quý 1.',
+    summary: 'Bao gồm kế hoạch content, budget allocation, target audience và KPIs cho các chiến dịch marketing quý 1/2026.',
+    categoryIds: ['c3'],
+    categoryId: 'c3',
+    spaceId: 's2',
+    createdBy: MOCK_USERS[2], // Lê Văn C
+    createdAt: '2025-12-20',
+    effectiveDate: '2026-01-01',
+    expiryDate: '2026-03-31',
+    status: DocStatus.APPROVED,
+    lifecycleStatus: 'Active' as LifecycleStatus,
+    versions: [
+      { version: '1.0', updatedAt: '2025-12-20', updatedBy: 'Lê Văn C', changeLog: 'Phát hành' }
+    ],
+    tags: ['marketing', 'campaign', 'strategy'],
+    viewCount: 78,
+    downloadCount: 23,
+    comments: [
+      { 
+        id: 'cmt_sh1', 
+        user: MOCK_USERS[0], 
+        content: 'Budget cho Social Media campaign có vẻ hơi thấp, nên tăng lên 20%.', 
+        createdAt: '2025-12-22 14:20', 
+        docId: 'shared_with_me_1',
+        docTitle: 'Kế hoạch Marketing Q1 2026',
+        parentId: null
+      }
+    ],
+    fileType: 'pptx',
+    isShared: true,
+    source: 'Nội bộ',
+    avgRating: 4.2,
+    ratingCount: 12,
+    approvalDate: '2025-12-21',
+    approverName: 'Trần Thị B'
+  },
+  {
+    id: 'shared_with_me_2',
+    title: 'Báo cáo Phân tích Thị trường 2025',
+    description: 'Phân tích xu hướng thị trường và đối thủ cạnh tranh.',
+    summary: 'Nghiên cứu chi tiết về thị trường, phân khúc khách hàng, đánh giá đối thủ và cơ hội phát triển.',
+    categoryIds: ['c3'],
+    categoryId: 'c3',
+    spaceId: 's2',
+    createdBy: MOCK_USERS[1], // Trần Thị B
+    createdAt: '2025-12-15',
+    effectiveDate: '2025-12-20',
+    expiryDate: '2026-06-30',
+    status: DocStatus.APPROVED,
+    lifecycleStatus: 'Active' as LifecycleStatus,
+    versions: [
+      { version: '1.0', updatedAt: '2025-12-15', updatedBy: 'Trần Thị B', changeLog: 'Hoàn thành' }
+    ],
+    tags: ['market-analysis', 'research', 'strategy'],
+    viewCount: 156,
+    downloadCount: 45,
+    comments: [],
+    fileType: 'pdf',
+    isShared: true,
+    source: 'Nội bộ',
+    avgRating: 4.6,
+    ratingCount: 24,
+    approvalDate: '2025-12-16',
+    approverName: 'Nguyễn Văn A'
+  },
+  {
+    id: 'shared_with_me_3',
+    title: 'Tài liệu Đào tạo TypeScript Advanced',
+    description: 'Khóa học TypeScript nâng cao cho developers.',
+    summary: 'Các chủ đề nâng cao: generics, decorators, advanced types, performance optimization và best practices.',
+    categoryIds: ['c2'],
+    categoryId: 'c2',
+    spaceId: 's1',
+    createdBy: MOCK_USERS[3], // Phạm Văn D
+    createdAt: '2026-01-02',
+    effectiveDate: '2026-01-05',
+    expiryDate: '2027-01-05',
+    status: DocStatus.APPROVED,
+    lifecycleStatus: 'Active' as LifecycleStatus,
+    versions: [
+      { version: '1.0', updatedAt: '2026-01-02', updatedBy: 'Phạm Văn D', changeLog: 'Tạo mới' }
+    ],
+    tags: ['typescript', 'training', 'programming'],
+    viewCount: 89,
+    downloadCount: 34,
+    comments: [
+      { 
+        id: 'cmt_sh2', 
+        user: MOCK_USERS[0], 
+        content: 'Tài liệu rất hay, phần generics giải thích rất dễ hiểu!', 
+        createdAt: '2026-01-03 16:45', 
+        docId: 'shared_with_me_3',
+        docTitle: 'Tài liệu Đào tạo TypeScript Advanced',
+        parentId: null
+      }
+    ],
+    fileType: 'pdf',
+    isShared: true,
+    source: 'Nội bộ',
+    avgRating: 4.9,
+    ratingCount: 15,
+    approvalDate: '2026-01-03',
+    approverName: 'Trần Thị B'
+  },
+  {
+    id: 'expiring1',
+    title: 'Chính sách Bảo hiểm 2024',
+    description: 'Quy định về bảo hiểm y tế và bảo hiểm xã hội cho nhân viên.',
+    summary: 'Hướng dẫn quy trình đăng ký, thanh toán và quyền lợi bảo hiểm cho nhân viên trong năm 2024.',
+    categoryIds: ['c1', 'c1-1'],
+    categoryId: 'c1',
+    spaceId: 's3',
+    createdBy: MOCK_USERS[0],
+    createdAt: '2024-01-01',
+    effectiveDate: '2024-01-01',
+    expiryDate: '2026-02-08', // Sắp hết hạn trong 30 ngày
+    status: DocStatus.APPROVED,
+    lifecycleStatus: 'Active' as LifecycleStatus,
+    versions: [
+      { version: '1.0', updatedAt: '2024-01-01', updatedBy: 'Nguyễn Văn A', changeLog: 'Phát hành' }
+    ],
+    tags: ['hr', 'insurance', 'policy'],
+    viewCount: 1850,
+    downloadCount: 320,
+    comments: [],
+    fileType: 'pdf',
+    isShared: true,
+    source: 'Nội bộ',
+    avgRating: 4.6,
+    ratingCount: 45,
+    approvalDate: '2024-01-02',
+    approverName: 'Trần Thị B'
+  },
+  {
+    id: 'expiring2',
+    title: 'Hướng dẫn An toàn Lao động',
+    description: 'Quy định về an toàn lao động và vệ sinh công nghiệp.',
+    summary: 'Nội quy an toàn, quy trình xử lý sự cố và các thiết bị bảo hộ bắt buộc.',
+    categoryIds: ['c1'],
+    categoryId: 'c1',
+    spaceId: 's1',
+    createdBy: MOCK_USERS[0],
+    createdAt: '2023-12-01',
+    effectiveDate: '2024-01-01',
+    expiryDate: '2026-01-25', // Sắp hết hạn trong vài ngày
+    status: DocStatus.APPROVED,
+    lifecycleStatus: 'Active' as LifecycleStatus,
+    versions: [
+      { version: '2.1', updatedAt: '2024-06-15', updatedBy: 'Phạm Văn D', changeLog: 'Cập nhật theo quy chuẩn mới' },
+      { version: '2.0', updatedAt: '2023-12-01', updatedBy: 'Nguyễn Văn A', changeLog: 'Phiên bản năm 2024' }
+    ],
+    tags: ['safety', 'policy', 'mandatory'],
+    viewCount: 3200,
+    downloadCount: 890,
+    comments: [],
+    fileType: 'pdf',
+    isShared: true,
+    source: 'Nội bộ',
+    avgRating: 4.8,
+    ratingCount: 78,
+    approvalDate: '2023-12-05',
+    approverName: 'Nguyễn Văn A'
+  },
+  {
+    id: 'expiring3',
+    title: 'Chính sách Chi phí Di chuyển',
+    description: 'Quy định về chi phí đi lại và công tác phí.',
+    summary: 'Mức chi tiêu chuẩn cho các loại chi phí: xe, khách sạn, ăn uống khi công tác.',
+    categoryIds: ['c1', 'c1-1'],
+    categoryId: 'c1',
+    spaceId: 's3',
+    createdBy: MOCK_USERS[1],
+    createdAt: '2024-02-01',
+    effectiveDate: '2024-03-01',
+    expiryDate: '2026-01-20', // Đang hết hạn
+    status: DocStatus.EXPIRED,
+    lifecycleStatus: 'Expired' as LifecycleStatus,
+    versions: [
+      { version: '1.0', updatedAt: '2024-02-01', updatedBy: 'Trần Thị B', changeLog: 'Phiên bản đầu' }
+    ],
+    tags: ['hr', 'travel', 'expense'],
+    viewCount: 2100,
+    downloadCount: 450,
+    comments: [],
+    fileType: 'pdf',
+    source: 'Nội bộ',
+    avgRating: 4.3,
+    ratingCount: 35,
+    approvalDate: '2024-02-05',
+    approverName: 'Nguyễn Văn A'
+  },
+  {
+    id: 'recent1',
+    title: 'Quy trình Phê duyệt Nghiệp vụ',
+    description: 'Hướng dẫn quy trình phê duyệt các nghiệp vụ kinh doanh.',
+    summary: 'Các bước thực hiện phê duyệt từ cấp quản lý đến giám đốc.',
+    categoryIds: ['c1'],
+    categoryId: 'c1',
+    spaceId: 's2',
+    createdBy: MOCK_USERS[0],
+    createdAt: '2025-12-15',
+    effectiveDate: '2026-01-01',
+    expiryDate: '2027-01-01',
+    status: DocStatus.APPROVED,
+    lifecycleStatus: 'Active' as LifecycleStatus,
+    versions: [
+      { version: '1.0', updatedAt: '2025-12-15', updatedBy: 'Nguyễn Văn A', changeLog: 'Tạo mới' }
+    ],
+    tags: ['approval', 'business', 'process'],
+    viewCount: 245,
+    downloadCount: 67,
+    comments: [],
+    fileType: 'docx',
+    isShared: true,
+    source: 'Nội bộ',
+    avgRating: 4.5,
+    ratingCount: 12,
+    approvalDate: '2025-12-20',
+    approverName: 'Trần Thị B'
+  },
   {
     id: 'd1',
     title: 'Lộ trình phát triển Quý 3/2024',
@@ -2900,6 +3320,22 @@ export const KMSService = {
     return MOCK_DOCS.filter(d => ['d2', 'd4'].includes(d.id));
   },
 
+  getMyCommentedDocuments: async (userId: string) => {
+    // Mock: Return documents where user has commented
+    // In real app: JOIN documents with comments table WHERE comments.userId = userId
+    return MOCK_DOCS.filter(d => d.comments && d.comments.some(c => c.user.id === userId));
+  },
+
+  getMyExpiredDocuments: async (userId: string) => {
+    // Mock: Return expired documents created by user
+    const now = new Date().getTime();
+    return MOCK_DOCS.filter(d => {
+      if (d.createdBy.id !== userId) return false;
+      if (!d.expiryDate) return false;
+      return new Date(d.expiryDate).getTime() < now;
+    });
+  },
+
   getMyRecentViews: async (userId: string) => {
     // Mock view history
     return [
@@ -2954,10 +3390,19 @@ export const KMSService = {
   getMyDocumentsStats: async (userId: string) => {
     const created = MOCK_DOCS.filter(d => d.createdBy.id === userId);
     const shared = MOCK_DOCS.filter(d => d.isShared && d.createdBy.id !== userId).slice(0, 3);
+    const commented = MOCK_DOCS.filter(d => d.comments && d.comments.some(c => c.user.id === userId));
+    const now = new Date().getTime();
+    const expired = MOCK_DOCS.filter(d => {
+      if (d.createdBy.id !== userId) return false;
+      if (!d.expiryDate) return false;
+      return new Date(d.expiryDate).getTime() < now;
+    });
     
     return {
       created: created.length,
       shared: shared.length,
+      commented: commented.length,
+      expired: expired.length,
       favorite: 2,
       following: 2,
       recentView: 3,
@@ -3014,6 +3459,51 @@ export const KMSService = {
     }
 
     MOCK_DOCS.splice(idx, 1);
+    return { success: true };
+  },
+
+  updateExpiredDocument: async (docId: string, updateData: { newExpiryDate: string; reason: string; newVersion?: string }) => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    const doc = MOCK_DOCS.find(d => d.id === docId);
+    if (doc) {
+      // Reset document to pending approval status
+      doc.lifecycleStatus = 'PendingLevel1';
+      doc.status = DocStatus.PENDING;
+      doc.expiryDate = updateData.newExpiryDate;
+      
+      // Clear previous approval data
+      delete doc.approverLevel1Name;
+      delete doc.approverLevel1Date;
+      delete doc.approverLevel2Name;
+      delete doc.approverLevel2Date;
+      delete doc.approverLevel3Name;
+      delete doc.approverLevel3Date;
+      
+      // Add new version
+      const newVersionNumber = updateData.newVersion || `${parseFloat(doc.versions[0]?.version || '1.0') + 0.1}`;
+      doc.versions.unshift({
+        version: newVersionNumber,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'Nguyễn Văn A',
+        changeLog: updateData.reason
+      });
+      
+      // Save update history
+      if (!doc.extensionHistory) {
+        doc.extensionHistory = [];
+      }
+      doc.extensionHistory.push({
+        id: `upd-${Date.now()}`,
+        previousExpiryDate: doc.expiryDate,
+        newExpiryDate: updateData.newExpiryDate,
+        extendedBy: 'Nguyễn Văn A',
+        extendedAt: new Date().toISOString(),
+        reason: updateData.reason,
+        approvedBy: 'Đang chờ phê duyệt',
+        approvedAt: ''
+      });
+      doc.lastExtensionReason = updateData.reason;
+    }
     return { success: true };
   },
 

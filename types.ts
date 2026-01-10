@@ -193,6 +193,7 @@ export interface KMSDocument {
   title: string;
   description: string; // Detailed description for internal use
   summary: string; // Tóm tắt nội dung - optimized for search & display
+  documentType?: 'Tài liệu đào tạo' | 'Tài liệu công ty'; // Loại tài liệu
   categoryIds: string[]; // Multiple categories allowed
   spaceId?: string; // Optional - removed from Kho (only for origin tracking)
   createdBy: User;

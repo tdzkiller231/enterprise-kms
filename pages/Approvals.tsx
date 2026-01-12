@@ -48,6 +48,7 @@ export const Approvals: React.FC = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [rejectAttachments, setRejectAttachments] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Stats
@@ -180,11 +181,12 @@ export const Approvals: React.FC = () => {
     }
     setIsProcessing(true);
     try {
-      await KMSService.rejectLevel1(selectedDoc.id, rejectReason);
+      await KMSService.rejectLevel1(selectedDoc.id, rejectReason, rejectAttachments);
       alert('Đã từ chối tài liệu ở cấp 1. Người gửi sẽ nhận được thông báo.');
       setRejectModalOpen(false);
       setDetailOpen(false);
       setRejectReason('');
+      setRejectAttachments([]);
       loadData();
     } finally {
       setIsProcessing(false);
@@ -198,11 +200,12 @@ export const Approvals: React.FC = () => {
     }
     setIsProcessing(true);
     try {
-      await KMSService.rejectLevel2(selectedDoc.id, rejectReason);
+      await KMSService.rejectLevel2(selectedDoc.id, rejectReason, rejectAttachments);
       alert('Đã từ chối tài liệu ở cấp 2. Tài liệu quay lại cấp 1.');
       setRejectModalOpen(false);
       setDetailOpen(false);
       setRejectReason('');
+      setRejectAttachments([]);
       loadData();
     } finally {
       setIsProcessing(false);
@@ -216,11 +219,12 @@ export const Approvals: React.FC = () => {
     }
     setIsProcessing(true);
     try {
-      await KMSService.rejectLevel3(selectedDoc.id, rejectReason);
+      await KMSService.rejectLevel3(selectedDoc.id, rejectReason, rejectAttachments);
       alert('Đã từ chối tài liệu ở cấp 3. Tài liệu quay lại cấp 2.');
       setRejectModalOpen(false);
       setDetailOpen(false);
       setRejectReason('');
+      setRejectAttachments([]);
       loadData();
     } finally {
       setIsProcessing(false);
@@ -892,11 +896,11 @@ export const Approvals: React.FC = () => {
       {/* Reject Modal */}
       <Modal
         isOpen={rejectModalOpen}
-        onClose={() => { setRejectModalOpen(false); setRejectReason(''); }}
+        onClose={() => { setRejectModalOpen(false); setRejectReason(''); setRejectAttachments([]);}}
         title={`Từ chối phê duyệt cấp ${activeLevel}`}
         footer={
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => { setRejectModalOpen(false); setRejectReason(''); }}>
+            <Button variant="ghost" onClick={() => { setRejectModalOpen(false); setRejectReason(''); setRejectAttachments([])}}>
               Hủy
             </Button>
             <Button 
@@ -924,6 +928,52 @@ export const Approvals: React.FC = () => {
             onChange={(e) => setRejectReason(e.target.value)}
             placeholder="VD: Tài liệu chưa đầy đủ thông tin phần 3, cần bổ sung thêm ví dụ minh họa..."
           />
+          
+          {/* File Attachments */}
+          <div className="border-t pt-4">
+            <label className="text-sm font-medium text-gray-700 mb-2 block">
+              Đính kèm file giải thích (nếu cần)
+            </label>
+            <div className="space-y-2">
+              <input
+                type="file"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  setRejectAttachments(prev => [...prev, ...files]);
+                  e.target.value = ''; // Reset input
+                }}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 cursor-pointer"
+              />
+              {rejectAttachments.length > 0 && (
+                <div className="space-y-1">
+                  {rejectAttachments.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span className="text-gray-700 truncate">{file.name}</span>
+                        <span className="text-gray-500 text-xs flex-shrink-0">
+                          ({(file.size / 1024).toFixed(1)} KB)
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setRejectAttachments(prev => prev.filter((_, i) => i !== index));
+                        }}
+                        className="ml-2 p-1 hover:bg-gray-200 rounded text-red-600 flex-shrink-0"
+                        title="Xóa file"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-gray-500">
+                💡 Bạn có thể đính kèm file hình ảnh, tài liệu để giải thích chi tiết hơn lý do từ chối
+              </p>
+            </div>
+          </div>
         </div>
       </Modal>
     </div>

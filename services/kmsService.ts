@@ -3112,15 +3112,26 @@ export const KMSService = {
     return doc;
   },
 
-  rejectLevel1: async (docId: string, reason: string) => {
+  rejectLevel1: async (docId: string, reason: string, attachments?: File[]) => {
     const doc = MOCK_DOCS.find(d => d.id === docId);
     if (!doc) throw new Error('Document not found');
+    
+    // Simulate file upload (in real app, upload to server/storage)
+    const attachmentUrls: string[] = [];
+    if (attachments && attachments.length > 0) {
+      attachments.forEach(file => {
+        // Mock URL - in real app, upload and get URL
+        attachmentUrls.push(`/uploads/reject-attachments/${docId}/${file.name}`);
+        console.log(`Uploaded attachment: ${file.name} (${file.size} bytes)`);
+      });
+    }
     
     // Update document status
     doc.lifecycleStatus = 'RejectedLevel1';
     doc.rejectReason = reason;
     doc.rejectedBy = 'Lê Văn C (User)';
     doc.rejectedAt = new Date().toLocaleString('vi-VN');
+    (doc as any).rejectAttachments = attachmentUrls; // Store attachment URLs
 
     return doc;
   },
@@ -3138,15 +3149,26 @@ export const KMSService = {
     return doc;
   },
 
-  rejectLevel2: async (docId: string, reason: string) => {
+  rejectLevel2: async (docId: string, reason: string, attachments?: File[]) => {
     const doc = MOCK_DOCS.find(d => d.id === docId);
     if (!doc) throw new Error('Document not found');
+    
+    // Simulate file upload (in real app, upload to server/storage)
+    const attachmentUrls: string[] = [];
+    if (attachments && attachments.length > 0) {
+      attachments.forEach(file => {
+        // Mock URL - in real app, upload and get URL
+        attachmentUrls.push(`/uploads/reject-attachments/${docId}/${file.name}`);
+        console.log(`Uploaded attachment: ${file.name} (${file.size} bytes)`);
+      });
+    }
     
     // Update document status
     doc.lifecycleStatus = 'RejectedLevel2';
     doc.rejectReasonLevel2 = reason;
     doc.rejectedByLevel2 = 'Trần Thị B (Manager)';
     doc.rejectedAtLevel2 = new Date().toLocaleString('vi-VN');
+    (doc as any).rejectAttachmentsLevel2 = attachmentUrls; // Store attachment URLs
 
     return doc;
   },
@@ -3166,15 +3188,26 @@ export const KMSService = {
     return doc;
   },
 
-  rejectLevel3: async (docId: string, reason: string) => {
+  rejectLevel3: async (docId: string, reason: string, attachments?: File[]) => {
     const doc = MOCK_DOCS.find(d => d.id === docId);
     if (!doc) throw new Error('Document not found');
+    
+    // Simulate file upload (in real app, upload to server/storage)
+    const attachmentUrls: string[] = [];
+    if (attachments && attachments.length > 0) {
+      attachments.forEach(file => {
+        // Mock URL - in real app, upload and get URL
+        attachmentUrls.push(`/uploads/reject-attachments/${docId}/${file.name}`);
+        console.log(`Uploaded attachment: ${file.name} (${file.size} bytes)`);
+      });
+    }
     
     // Update document status
     doc.lifecycleStatus = 'RejectedLevel3';
     doc.rejectReasonLevel3 = reason;
     doc.rejectedByLevel3 = 'Nguyễn Văn A (Admin)';
     doc.rejectedAtLevel3 = new Date().toLocaleString('vi-VN');
+    (doc as any).rejectAttachmentsLevel3 = attachmentUrls; // Store attachment URLs
 
     return doc;
   },

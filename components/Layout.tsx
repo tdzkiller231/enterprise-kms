@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   LayoutDashboard, 
   Files, 
@@ -30,6 +31,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout, user } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+  };
 
   // Admin Menu Structure based on Final KMS Governance Standard (BSR-tailored)
   const navItems = [
@@ -163,13 +169,19 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           <div className="p-4 bg-slate-900 border-t border-slate-800 mt-auto">
             <div className="flex items-center">
               <div className="h-9 w-9 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold">
-                 AD
+                 {user?.username?.substring(0, 2).toUpperCase() || 'AD'}
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-white">Quản trị viên</p>
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-medium text-white">{user?.username || 'Quản trị viên'}</p>
                 <p className="text-xs text-slate-400">System Owner</p>
               </div>
-              <LogOut className="ml-auto h-5 w-5 text-slate-400 cursor-pointer hover:text-white" />
+              <button 
+                onClick={handleLogout}
+                className="ml-auto h-8 w-8 flex items-center justify-center rounded-md hover:bg-slate-800 transition-colors"
+                title="Đăng xuất"
+              >
+                <LogOut className="h-5 w-5 text-slate-400 hover:text-white" />
+              </button>
             </div>
           </div>
         </div>

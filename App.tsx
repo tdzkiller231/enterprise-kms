@@ -1,6 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Login } from './pages/Login';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { DocumentRepository } from './pages/DocumentRepository';
@@ -19,7 +21,23 @@ import { RoleManagement } from './pages/RoleManagement';
 import { MyDocuments } from './pages/MyDocuments';
 import { KnowledgeCollection } from './pages/KnowledgeCollection';
 
-function App() {
+function AppRoutes() {
+  const { isAuthenticated, login } = useAuth();
+  const [loginError, setLoginError] = useState<string>('');
+
+  const handleLogin = (username: string, password: string) => {
+    const success = login(username, password);
+    if (!success) {
+      setLoginError('Tên đăng nhập hoặc mật khẩu không đúng. Vui lòng thử lại.');
+    } else {
+      setLoginError('');
+    }
+  };
+
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} error={loginError} />;
+  }
+
   return (
     <Router>
       <Layout>
@@ -67,6 +85,14 @@ function App() {
         </Routes>
       </Layout>
     </Router>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
   );
 }
 

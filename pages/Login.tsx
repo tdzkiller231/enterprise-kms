@@ -25,36 +25,18 @@ export function Login({ onLogin, error }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 relative overflow-hidden">
-      {/* Deep Dark Background with subtle texture - Full Screen */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(30,58,138,0.15),transparent_50%),radial-gradient(circle_at_70%_80%,rgba(15,23,42,0.3),transparent_50%)]"></div>
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-sky-200 via-blue-100 to-cyan-100">
+      {/* Background Image - Refinery */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-60"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?q=80&w=2070')`,
+          backgroundPosition: 'center bottom'
+        }}
+      ></div>
       
-      {/* Animated Pipeline Network - Full Screen */}
-      <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
-        {/* Horizontal pipes */}
-        <line x1="0" y1="20%" x2="100%" y2="20%" stroke="rgba(59,130,246,0.4)" strokeWidth="2" strokeDasharray="10,5" />
-        <line x1="0" y1="40%" x2="100%" y2="45%" stroke="rgba(59,130,246,0.3)" strokeWidth="3" />
-        <line x1="0" y1="60%" x2="100%" y2="58%" stroke="rgba(148,163,184,0.3)" strokeWidth="2" />
-        <line x1="0" y1="80%" x2="100%" y2="82%" stroke="rgba(59,130,246,0.2)" strokeWidth="2" strokeDasharray="15,10" />
-        
-        {/* Vertical pipes */}
-        <line x1="20%" y1="0" x2="18%" y2="100%" stroke="rgba(148,163,184,0.25)" strokeWidth="2" />
-        <line x1="50%" y1="0" x2="52%" y2="100%" stroke="rgba(59,130,246,0.3)" strokeWidth="3" strokeDasharray="8,8" />
-        <line x1="75%" y1="0" x2="73%" y2="100%" stroke="rgba(148,163,184,0.2)" strokeWidth="2" />
-        
-        {/* Connection nodes - knowledge points */}
-        <circle cx="20%" cy="20%" r="6" fill="rgba(59,130,246,0.6)" />
-        <circle cx="50%" cy="40%" r="8" fill="rgba(59,130,246,0.8)" />
-        <circle cx="75%" cy="60%" r="5" fill="rgba(148,163,184,0.6)" />
-        <circle cx="30%" cy="75%" r="7" fill="rgba(59,130,246,0.7)" />
-        <circle cx="65%" cy="85%" r="6" fill="rgba(148,163,184,0.5)" />
-      </svg>
-
-      {/* Glowing energy nodes - Full Screen */}
-      <div className="absolute top-[20%] left-[20%] w-16 h-16 bg-blue-500 rounded-full filter blur-2xl opacity-40 animate-pulse"></div>
-      <div className="absolute top-[40%] left-[50%] w-24 h-24 bg-blue-400 rounded-full filter blur-3xl opacity-30 animate-pulse" style={{ animationDelay: '1s' }}></div>
-      <div className="absolute top-[60%] left-[75%] w-20 h-20 bg-slate-400 rounded-full filter blur-2xl opacity-25 animate-pulse" style={{ animationDelay: '2s' }}></div>
-      <div className="absolute top-[75%] left-[30%] w-28 h-28 bg-blue-500 rounded-full filter blur-3xl opacity-35 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+      {/* Overlay gradient */}
+      <div className="absolute inset-0 bg-gradient-to-r from-sky-100/70 via-transparent to-white/50"></div>
 
       {/* Content Container */}
       <div className="relative z-10 min-h-screen flex items-center">
@@ -62,68 +44,60 @@ export function Login({ onLogin, error }: LoginProps) {
           <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-12 lg:gap-16">
             
             {/* Left Side - Branding & Message */}
-            <div className="flex-1 text-white text-left max-w-3xl">
-              {/* HiStaff Logo - Full Brand */}
-              <div className="mb-12">
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-6xl font-bold text-slate-200" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '-0.02em' }}>
-                      Hi
-                    </span>
-                    <span className="text-6xl font-bold text-slate-300" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '-0.02em' }}>
-                      Staff
-                    </span>
-                    <svg className="w-12 h-12 -mt-2" viewBox="0 0 40 40" fill="none">
-                      <path d="M 10 20 L 18 30 L 30 10" stroke="#FF6B35" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                  <div className="text-sm font-semibold tracking-[0.3em] text-slate-400 uppercase">
-                    Professional HRM Solution
-                  </div>
-                </div>
+            <div className="flex-1 text-left max-w-3xl">
+              {/* BSR Logo */}
+              <div className="mb-8">
+                <svg className="h-24 w-auto" viewBox="0 0 200 100" fill="none">
+                  {/* Green flame icon */}
+                  <g transform="translate(70, 10)">
+                    <path d="M 20 45 Q 15 35 20 25 Q 25 15 25 5 Q 25 15 30 20 Q 35 25 30 35 Q 28 40 25 45 Q 23 50 20 45 Z" fill="#4ADE80"/>
+                    <path d="M 30 50 Q 25 40 30 30 Q 33 25 35 20 Q 37 25 40 30 Q 43 35 40 42 Q 38 48 35 52 Q 32 55 30 50 Z" fill="#4ADE80"/>
+                  </g>
+                  {/* PETROVIETNAM text */}
+                  <text x="10" y="70" fill="#1e40af" fontSize="16" fontWeight="700" fontFamily="Arial, sans-serif" letterSpacing="1">PETROVIETNAM</text>
+                  {/* BSR text */}
+                  <text x="85" y="90" fill="#22c55e" fontSize="20" fontWeight="700" fontFamily="Arial, sans-serif" letterSpacing="2">BSR</text>
+                </svg>
               </div>
 
-              {/* Main Message - Large, Bold, Strategic */}
-              <div className="space-y-8">
-                <h1 className="text-6xl font-bold leading-tight tracking-tight">
-                  TRI THỨC –<br />
-                  NĂNG LƯỢNG VẬN HÀNH DOANH NGHIỆP
+              {/* Robot illustration placeholder */}
+              <div className="mb-8 opacity-40">
+                <svg className="w-32 h-32" viewBox="0 0 100 100" fill="none">
+                  <circle cx="50" cy="30" r="15" fill="#64748b" opacity="0.8"/>
+                  <rect x="35" y="45" width="30" height="35" rx="3" fill="#64748b" opacity="0.8"/>
+                  <rect x="30" y="50" width="8" height="20" rx="2" fill="#64748b" opacity="0.8"/>
+                  <rect x="62" y="50" width="8" height="20" rx="2" fill="#64748b" opacity="0.8"/>
+                  <circle cx="45" cy="28" r="3" fill="#e0f2fe"/>
+                  <circle cx="55" cy="28" r="3" fill="#e0f2fe"/>
+                </svg>
+              </div>
+
+              {/* Main Message */}
+              <div className="space-y-6">
+                <h1 className="text-5xl font-bold leading-tight tracking-tight text-blue-700">
+                  TRI THỨC<br />
+                  NĂNG LƯỢNG VẬN HÀNH<br />
+                  DOANH NGHIỆP
                 </h1>
-                
-                <div className="w-24 h-1.5 bg-blue-500"></div>
-                
-                <p className="text-xl text-slate-300 leading-relaxed font-light">
-                  Kết nối – kế thừa – khai thác tri thức nội bộ BSR
-                </p>
-              </div>
-
-              {/* Minimal data flow indicators */}
-              <div className="mt-24 flex items-center gap-4 opacity-40">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-                  <div className="w-16 h-px bg-blue-500"></div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-                  <div className="w-24 h-px bg-blue-400"></div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-                  <div className="w-12 h-px bg-slate-400"></div>
-                </div>
               </div>
             </div>
 
             {/* Right Side - Floating Login Card */}
             <div className="w-full max-w-md">
               <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 sm:p-10 border border-slate-200">
+                {/* HiStaff Logo */}
                 <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                    Đăng nhập
-                  </h2>
-                  <p className="text-sm text-slate-600">
-                    Truy cập hệ thống quản trị tri thức
-                  </p>
+                  <div className="flex items-center gap-2 mb-6">
+                    <span className="text-4xl font-bold text-slate-800" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '-0.02em' }}>
+                      Hi
+                    </span>
+                    <span className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '-0.02em' }}>
+                      Staff
+                    </span>
+                    <svg className="w-8 h-8 -mt-1" viewBox="0 0 40 40" fill="none">
+                      <path d="M 10 20 L 18 30 L 30 10" stroke="#FF6B35" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                 </div>
 
                 {/* Error Message */}

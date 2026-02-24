@@ -18,6 +18,7 @@ import { Reports } from './pages/Reports';
 import { SearchConfig } from './pages/SearchConfig';
 import { AIAgent } from './pages/AIAgent';
 import { RoleManagement } from './pages/RoleManagement';
+import { UserManagement } from './pages/UserManagement';
 import { MyDocuments } from './pages/MyDocuments';
 import { KnowledgeCollection } from './pages/KnowledgeCollection';
 
@@ -44,6 +45,7 @@ function AppRoutes() {
         <Routes>
           {/* 1. Phân quyền */}
           <Route path="/rbac" element={<RoleManagement />} />
+          <Route path="/users" element={<UserManagement />} />
           
           {/* 2. Danh mục tri thức */}
           <Route path="/categories" element={<CategoryManager />} />

@@ -17,6 +17,18 @@ export interface User {
   avatar: string;
   department?: string;
   email?: string;
+  // User Management fields - optional to not break existing code
+  username?: string;
+  password?: string;
+  phone?: string;
+  position?: string;
+  status?: 'Active' | 'Inactive';
+  roleIds?: string[]; // RBAC group IDs
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  lastLoginAt?: string;
+  notes?: string;
 }
 
 export interface Permission {

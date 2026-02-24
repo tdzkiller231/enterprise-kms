@@ -24,7 +24,8 @@ import {
   Tag,
   Radio,
   Bot,
-  Upload
+  Upload,
+  Users
 } from 'lucide-react';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -43,6 +44,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       name: 'Phân quyền', // 1
       icon: ShieldAlert, 
       path: '/rbac'
+    },
+    { 
+      name: 'Quản lý User', // 1.1
+      icon: Users, 
+      path: '/users'
     },
     { 
       name: 'Danh mục tri thức', // 2

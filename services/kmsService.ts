@@ -9,6 +9,74 @@ const MOCK_USERS: User[] = [
   { id: 'u4', name: 'Phạm Văn D', role: 'User', avatar: 'https://picsum.photos/32/32?random=4', department: 'Kỹ thuật', email: 'vand@bsr.vn' },
 ];
 
+// Separate mock data for User Management to avoid conflicts with other screens
+const MOCK_USERS_FOR_MANAGEMENT: User[] = [
+  { 
+    id: 'um1', 
+    name: 'Nguyễn Văn A', 
+    username: 'vana',
+    role: 'Admin', 
+    avatar: 'https://picsum.photos/32/32?random=1', 
+    department: 'CNTT', 
+    email: 'vana@bsr.vn',
+    phone: '0901234560',
+    position: 'Giám đốc IT',
+    status: 'Active',
+    roleIds: ['role1'],
+    createdAt: '2024-01-01',
+    createdBy: 'System',
+    lastLoginAt: '2024-06-25 10:00'
+  },
+  { 
+    id: 'um2', 
+    name: 'Trần Thị B', 
+    username: 'thib',
+    role: 'Manager', 
+    avatar: 'https://picsum.photos/32/32?random=2', 
+    department: 'Nhân sự', 
+    email: 'thib@bsr.vn',
+    phone: '0901234561',
+    position: 'Manager HR',
+    status: 'Active',
+    roleIds: ['role2'],
+    createdAt: '2024-01-02',
+    createdBy: 'System',
+    lastLoginAt: '2024-06-24 10:00'
+  },
+  { 
+    id: 'um3', 
+    name: 'Lê Văn C', 
+    username: 'vanc',
+    role: 'User', 
+    avatar: 'https://picsum.photos/32/32?random=3', 
+    department: 'Kinh doanh', 
+    email: 'vanc@bsr.vn',
+    phone: '0901234562',
+    position: 'Nhân viên',
+    status: 'Active',
+    roleIds: ['role3'],
+    createdAt: '2024-01-03',
+    createdBy: 'System',
+    lastLoginAt: '2024-06-23 10:00'
+  },
+  { 
+    id: 'um4', 
+    name: 'Phạm Văn D', 
+    username: 'vand',
+    role: 'User', 
+    avatar: 'https://picsum.photos/32/32?random=4', 
+    department: 'Kỹ thuật', 
+    email: 'vand@bsr.vn',
+    phone: '0901234563',
+    position: 'Nhân viên',
+    status: 'Inactive',
+    roleIds: ['role3'],
+    createdAt: '2024-01-04',
+    createdBy: 'System',
+    lastLoginAt: '2024-06-22 10:00'
+  }
+];
+
 const MOCK_CATEGORIES: Category[] = [
   { 
     id: 'c1', 
@@ -3690,6 +3758,130 @@ export const KMSService = {
     // In real app: Get from authentication context
     // For now, return first user (Admin)
     return MOCK_USERS[0];
+  },
+
+  // --- USER MANAGEMENT METHODS ---
+  // Separate user storage for user management to avoid interfering with existing MOCK_USERS
+  getUsersForManagement: async (filters?: {
+    search?: string;
+    roleId?: string;
+    status?: string;
+    page?: number;
+    pageSize?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) => {
+    // Use separate MOCK_USERS_FOR_MANAGEMENT 
+    let users: User[] = [...MOCK_USERS_FOR_MANAGEMENT];
+    
+    // Apply filters
+    if (filters?.search) {
+      const search = filters.search.toLowerCase();
+      users = users.filter(u => 
+        u.name?.toLowerCase().includes(search) ||
+        u.email?.toLowerCase().includes(search) ||
+        u.username?.toLowerCase().includes(search)
+      );
+    }
+    
+    if (filters?.roleId && filters.roleId !== 'all') {
+      users = users.filter(u => u.roleIds?.includes(filters.roleId!));
+    }
+    
+    if (filters?.status && filters.status !== 'all') {
+      users = users.filter(u => u.status === filters.status);
+    }
+    
+    // Sort
+    if (filters?.sortBy) {
+      users.sort((a, b) => {
+        const aVal = (a as any)[filters.sortBy!] || '';
+        const bVal = (b as any)[filters.sortBy!] || '';
+        const order = filters.sortOrder === 'desc' ? -1 : 1;
+        return aVal > bVal ? order : aVal < bVal ? -order : 0;
+      });
+    }
+    
+    // Pagination
+    const total = users.length;
+    const page = filters?.page || 1;
+    const pageSize = filters?.pageSize || 10;
+    const start = (page - 1) * pageSize;
+    const paginatedUsers = users.slice(start, start + pageSize);
+    
+    return {
+      users: paginatedUsers,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize)
+    };
+  },
+
+  createUser: async (userData: Partial<User>) => {
+    const newUser: User = {
+      id: 'um' + (MOCK_USERS_FOR_MANAGEMENT.length + 1),
+      name: userData.name || '',
+      username: userData.username,
+      role: userData.role || 'User',
+      avatar: `https://picsum.photos/32/32?random=${MOCK_USERS_FOR_MANAGEMENT.length + 1}`,
+      email: userData.email,
+      department: userData.department,
+      phone: userData.phone,
+      position: userData.position,
+      status: 'Active',
+      roleIds: userData.roleIds || [],
+      createdAt: new Date().toISOString().split('T')[0],
+      createdBy: 'Current User',
+      notes: userData.notes
+    };
+    MOCK_USERS_FOR_MANAGEMENT.push(newUser);
+    return newUser;
+  },
+
+  updateUser: async (userId: string, userData: Partial<User>) => {
+    const userIndex = MOCK_USERS_FOR_MANAGEMENT.findIndex(u => u.id === userId);
+    if (userIndex !== -1) {
+      MOCK_USERS_FOR_MANAGEMENT[userIndex] = {
+        ...MOCK_USERS_FOR_MANAGEMENT[userIndex],
+        ...userData,
+        updatedAt: new Date().toISOString().split('T')[0]
+      };
+      return MOCK_USERS_FOR_MANAGEMENT[userIndex];
+    }
+    return null;
+  },
+
+  deleteUser: async (userId: string) => {
+    const userIndex = MOCK_USERS_FOR_MANAGEMENT.findIndex(u => u.id === userId);
+    if (userIndex !== -1) {
+      MOCK_USERS_FOR_MANAGEMENT.splice(userIndex, 1);
+      return { success: true };
+    }
+    return { success: false };
+  },
+
+  toggleUserStatus: async (userId: string) => {
+    const user = MOCK_USERS_FOR_MANAGEMENT.find(u => u.id === userId);
+    if (user) {
+      user.status = user.status === 'Active' ? 'Inactive' : 'Active';
+      return user;
+    }
+    return null;
+  },
+
+  resetUserPassword: async (userId: string) => {
+    const user = MOCK_USERS_FOR_MANAGEMENT.find(u => u.id === userId);
+    if (user) {
+      // Generate temporary password
+      const tempPassword = 'Temp' + Math.random().toString(36).substr(2, 6) + '!';
+      return {
+        success: true,
+        tempPassword,
+        user
+      };
+    }
+    return { success: false };
   }
 };
 

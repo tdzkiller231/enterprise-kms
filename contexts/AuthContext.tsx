@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface User {
   username: string;
@@ -17,14 +17,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  // Check for existing session on mount
-  useEffect(() => {
-    const savedUser = localStorage.getItem('kms_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
-
   const login = (username: string, password: string): boolean => {
     // Simple authentication - username: admin, password: 123456
     if (username === 'admin' && password === '123456') {
@@ -33,7 +25,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: 'admin'
       };
       setUser(user);
-      localStorage.setItem('kms_user', JSON.stringify(user));
       return true;
     }
     return false;
@@ -41,7 +32,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('kms_user');
   };
 
   const value = {

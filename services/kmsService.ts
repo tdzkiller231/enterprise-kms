@@ -355,7 +355,277 @@ const MOCK_COMMENTS: Comment[] = [
     docTitle: 'Lộ trình phát triển Quý 3/2024',
     parentId: null,
     mentions: ['VanA']
-  }
+  },
+
+  // === Thảo luận cho "Quy trình Quản lý Dự án 2026" (my_doc_1) ===
+  {
+    id: 'cm_d1_1',
+    user: MOCK_USERS[3],
+    content: 'Tài liệu này rất chi tiết và dễ hiểu, cảm ơn anh @VanA! Phần sprint planning mô tả đúng với thực tế dự án bọn mình đang làm.',
+    createdAt: '2026-01-06 08:45',
+    docId: 'my_doc_1',
+    docTitle: 'Quy trình Quản lý Dự án 2026',
+    parentId: null,
+    mentions: ['VanA']
+  },
+  {
+    id: 'cm_d1_2',
+    user: MOCK_USERS[0],
+    content: 'Cảm ơn @VanD! Phần sprint planning được tổng hợp từ kinh nghiệm thực tế của nhiều dự án. Nếu team bạn có thêm feedback thì cứ comment vào đây nhé.',
+    createdAt: '2026-01-06 09:10',
+    docId: 'my_doc_1',
+    docTitle: 'Quy trình Quản lý Dự án 2026',
+    parentId: 'cm_d1_1',
+    mentions: ['VanD']
+  },
+  {
+    id: 'cm_d1_3',
+    user: MOCK_USERS[2],
+    content: 'Mình có thắc mắc về phần Definition of Done (DoD). Trong tài liệu đang để khá chung chung, team có thể bổ sung thêm tiêu chí cụ thể cho từng loại task không ạ?',
+    createdAt: '2026-01-07 10:20',
+    docId: 'my_doc_1',
+    docTitle: 'Quy trình Quản lý Dự án 2026',
+    parentId: null
+  },
+  {
+    id: 'cm_d1_4',
+    user: MOCK_USERS[1],
+    content: '@VanC Đồng ý với bạn, DoD nên chi tiết hơn. Mình đề xuất thêm: (1) Code review đã được approve, (2) Unit test coverage ≥ 80%, (3) Tài liệu kỹ thuật đã được cập nhật.',
+    createdAt: '2026-01-07 11:05',
+    docId: 'my_doc_1',
+    docTitle: 'Quy trình Quản lý Dự án 2026',
+    parentId: 'cm_d1_3',
+    mentions: ['VanC']
+  },
+  {
+    id: 'cm_d1_5',
+    user: MOCK_USERS[0],
+    content: 'Rất tốt! Mình sẽ cập nhật phần DoD trong phiên bản v1.1. @ThiB bạn có cần bổ sung tiêu chí nào từ góc độ quản lý không?',
+    createdAt: '2026-01-07 13:30',
+    docId: 'my_doc_1',
+    docTitle: 'Quy trình Quản lý Dự án 2026',
+    parentId: 'cm_d1_3',
+    mentions: ['ThiB']
+  },
+  {
+    id: 'cm_d1_6',
+    user: MOCK_USERS[1],
+    content: '@VanA Từ phía quản lý, mình cần thêm tiêu chí: Stakeholder đã verify và approve kết quả sprint demo. Điều này quan trọng để tránh làm đi làm lại.',
+    createdAt: '2026-01-07 14:15',
+    docId: 'my_doc_1',
+    docTitle: 'Quy trình Quản lý Dự án 2026',
+    parentId: 'cm_d1_5',
+    mentions: ['VanA']
+  },
+  {
+    id: 'cm_d1_7',
+    user: MOCK_USERS[3],
+    content: 'Phần retrospective mình đang áp dụng format "Start/Stop/Continue" thấy hiệu quả hơn "4Ls" trong tài liệu. Mọi người nghĩ sao?',
+    createdAt: '2026-01-08 09:00',
+    docId: 'my_doc_1',
+    docTitle: 'Quy trình Quản lý Dự án 2026',
+    parentId: null
+  },
+  {
+    id: 'cm_d1_8',
+    user: MOCK_USERS[2],
+    content: 'Cả hai format đều tốt, phụ thuộc vào team. Mình đã thử cả hai và thấy "Start/Stop/Continue" dễ facilitate hơn cho team mới, còn "4Ls" cho insight sâu hơn với team có kinh nghiệm.',
+    createdAt: '2026-01-08 10:30',
+    docId: 'my_doc_1',
+    docTitle: 'Quy trình Quản lý Dự án 2026',
+    parentId: 'cm_d1_7'
+  },
+  {
+    id: 'cm_d1_9',
+    user: MOCK_USERS[0],
+    content: 'Hay đó! Mình sẽ thêm cả hai format vào tài liệu như các lựa chọn tùy theo context. Cảm ơn mọi người đã đóng góp nhiều ý kiến rất giá trị 👍',
+    createdAt: '2026-01-08 11:00',
+    docId: 'my_doc_1',
+    docTitle: 'Quy trình Quản lý Dự án 2026',
+    parentId: 'cm_d1_7'
+  },
+  {
+    id: 'cm_d1_10',
+    user: MOCK_USERS[1],
+    content: 'Hỏi team: Với dự án outsource có client nước ngoài, flow approval có cần điều chỉnh gì không? Hiện tại quy trình đang thiết kế cho nội bộ là chính.',
+    createdAt: '2026-01-09 08:30',
+    docId: 'my_doc_1',
+    docTitle: 'Quy trình Quản lý Dự án 2026',
+    parentId: null
+  },
+  {
+    id: 'cm_d1_11',
+    user: MOCK_USERS[0],
+    content: '@ThiB Đây là điểm hay. Với dự án outsource cần thêm bước "Client Sign-off" sau sprint demo trước khi deploy. Mình sẽ tạo một appendix riêng cho case này trong v1.1.',
+    createdAt: '2026-01-09 09:45',
+    docId: 'my_doc_1',
+    docTitle: 'Quy trình Quản lý Dự án 2026',
+    parentId: 'cm_d1_10',
+    mentions: ['ThiB']
+  },
+
+  // === Thảo luận cho "Hướng dẫn Sử dụng API Gateway" (my_doc_2) ===
+  {
+    id: 'cm_d2_1',
+    user: MOCK_USERS[3],
+    content: 'Phần rate limiting có thể giải thích rõ hơn không anh? Mình chưa hiểu rõ cách cấu hình sliding window vs fixed window.',
+    createdAt: '2026-01-04 15:30',
+    docId: 'my_doc_2',
+    docTitle: 'Hướng dẫn Sử dụng API Gateway',
+    parentId: null
+  },
+  {
+    id: 'cm_d2_2',
+    user: MOCK_USERS[0],
+    content: '@VanD Fixed window đơn giản hơn nhưng có thể bị "burst" ở cuối/đầu window. Sliding window chính xác hơn nhưng tốn bộ nhớ hơn. Mình sẽ thêm diagram minh họa vào tài liệu tuần tới.',
+    createdAt: '2026-01-04 16:20',
+    docId: 'my_doc_2',
+    docTitle: 'Hướng dẫn Sử dụng API Gateway',
+    parentId: 'cm_d2_1',
+    mentions: ['VanD']
+  },
+  {
+    id: 'cm_d2_3',
+    user: MOCK_USERS[2],
+    content: 'Bổ sung thêm: Token bucket algorithm cũng là một lựa chọn tốt, cho phép burst traffic có kiểm soát. Kong Gateway và AWS API Gateway đều hỗ trợ cả ba loại này.',
+    createdAt: '2026-01-04 17:00',
+    docId: 'my_doc_2',
+    docTitle: 'Hướng dẫn Sử dụng API Gateway',
+    parentId: 'cm_d2_1'
+  },
+  {
+    id: 'cm_d2_4',
+    user: MOCK_USERS[1],
+    content: 'Phần authentication mình đang implement OAuth2 + JWT. Tài liệu có hướng dẫn refresh token rotation không? Đây là security best practice quan trọng.',
+    createdAt: '2026-01-05 09:00',
+    docId: 'my_doc_2',
+    docTitle: 'Hướng dẫn Sử dụng API Gateway',
+    parentId: null
+  },
+  {
+    id: 'cm_d2_5',
+    user: MOCK_USERS[0],
+    content: '@ThiB Phần refresh token rotation chưa có trong tài liệu hiện tại. Mình sẽ bổ sung vào section 4.2 - Security. Bạn đang dùng thư viện gì để implement? Spring Security hay custom?',
+    createdAt: '2026-01-05 10:15',
+    docId: 'my_doc_2',
+    docTitle: 'Hướng dẫn Sử dụng API Gateway',
+    parentId: 'cm_d2_4',
+    mentions: ['ThiB']
+  },
+  {
+    id: 'cm_d2_6',
+    user: MOCK_USERS[1],
+    content: 'Đang dùng Spring Security + Redis để store refresh token. Nếu anh có sample config thì chia sẻ với mình nhé, mình đang bị lỗi token invalidation sau logout.',
+    createdAt: '2026-01-05 11:00',
+    docId: 'my_doc_2',
+    docTitle: 'Hướng dẫn Sử dụng API Gateway',
+    parentId: 'cm_d2_5'
+  },
+  {
+    id: 'cm_d2_7',
+    user: MOCK_USERS[3],
+    content: 'Monitoring section rất hay! Mình đã setup Grafana dashboard theo hướng dẫn. Nhưng alert threshold cho p99 latency nên set bao nhiêu ms là hợp lý với hệ thống của mình?',
+    createdAt: '2026-01-06 14:00',
+    docId: 'my_doc_2',
+    docTitle: 'Hướng dẫn Sử dụng API Gateway',
+    parentId: null
+  },
+  {
+    id: 'cm_d2_8',
+    user: MOCK_USERS[2],
+    content: 'Thông thường p99 < 500ms là acceptable cho internal API, < 200ms cho public API. Nhưng quan trọng hơn là set baseline từ hệ thống của bạn rồi alert khi vượt 2x baseline.',
+    createdAt: '2026-01-06 15:30',
+    docId: 'my_doc_2',
+    docTitle: 'Hướng dẫn Sử dụng API Gateway',
+    parentId: 'cm_d2_7'
+  },
+
+  // === Thảo luận cho "Chính sách Coding Standards" (my_doc_3) ===
+  {
+    id: 'cm_d3_1',
+    user: MOCK_USERS[3],
+    content: 'Phần naming convention cho React components, tài liệu có đề cập đến file naming không? Nên dùng PascalCase.tsx hay kebab-case.tsx?',
+    createdAt: '2026-01-02 09:00',
+    docId: 'my_doc_3',
+    docTitle: 'Chính sách Coding Standards',
+    parentId: null
+  },
+  {
+    id: 'cm_d3_2',
+    user: MOCK_USERS[0],
+    content: 'Team mình đang dùng PascalCase cho component files (UserProfile.tsx) và kebab-case cho utility files (format-date.ts). Chính sách này sẽ được làm rõ hơn trong v3.1.',
+    createdAt: '2026-01-02 10:00',
+    docId: 'my_doc_3',
+    docTitle: 'Chính sách Coding Standards',
+    parentId: 'cm_d3_1'
+  },
+  {
+    id: 'cm_d3_3',
+    user: MOCK_USERS[2],
+    content: 'Về code review process, mình đề xuất thêm quy định: PR không được merge nếu có comment "Request Changes" chưa được resolve. Hiện tại có vài PRs bị bỏ qua.',
+    createdAt: '2026-01-03 08:30',
+    docId: 'my_doc_3',
+    docTitle: 'Chính sách Coding Standards',
+    parentId: null
+  },
+  {
+    id: 'cm_d3_4',
+    user: MOCK_USERS[1],
+    content: '@VanC Đồng ý 100%. Nên thêm rule này vào Branch Protection trên GitHub/GitLab luôn cho tự động enforce, không cần manual check.',
+    createdAt: '2026-01-03 09:15',
+    docId: 'my_doc_3',
+    docTitle: 'Chính sách Coding Standards',
+    parentId: 'cm_d3_3',
+    mentions: ['VanC']
+  },
+  {
+    id: 'cm_d3_5',
+    user: MOCK_USERS[0],
+    content: 'Tốt! Mình sẽ thêm phần Branch Protection Rules vào tài liệu. @VanD bạn đang quản lý GitHub org, bạn có thể config rule này được không?',
+    createdAt: '2026-01-03 10:00',
+    docId: 'my_doc_3',
+    docTitle: 'Chính sách Coding Standards',
+    parentId: 'cm_d3_3',
+    mentions: ['VanD']
+  },
+  {
+    id: 'cm_d3_6',
+    user: MOCK_USERS[3],
+    content: '@VanA Được, mình sẽ config ngay hôm nay. Ngoài ra mình cũng sẽ thêm required status checks: CI phải pass và ít nhất 1 approved review trước khi merge vào main.',
+    createdAt: '2026-01-03 11:00',
+    docId: 'my_doc_3',
+    docTitle: 'Chính sách Coding Standards',
+    parentId: 'cm_d3_5',
+    mentions: ['VanA']
+  },
+  {
+    id: 'cm_d3_7',
+    user: MOCK_USERS[2],
+    content: 'Test coverage policy 80% có vẻ thấp cho critical modules. Mình đề xuất: core business logic ≥ 90%, utilities ≥ 80%, UI components ≥ 70%. Các bạn thấy sao?',
+    createdAt: '2026-01-04 14:00',
+    docId: 'my_doc_3',
+    docTitle: 'Chính sách Coding Standards',
+    parentId: null
+  },
+  {
+    id: 'cm_d3_8',
+    user: MOCK_USERS[1],
+    content: 'Hợp lý! Phân loại theo module type giúp team tập trung coverage vào chỗ quan trọng. Tuy nhiên nên có grace period 1 tháng để các team hiện tại adjust.',
+    createdAt: '2026-01-04 15:00',
+    docId: 'my_doc_3',
+    docTitle: 'Chính sách Coding Standards',
+    parentId: 'cm_d3_7'
+  },
+  {
+    id: 'cm_d3_9',
+    user: MOCK_USERS[0],
+    content: 'Sẽ áp dụng đề xuất của @VanC với grace period 2 tuần. Team nào chưa đạt threshold cần tạo ticket trong backlog để cải thiện. Update trong v3.1 tuần tới.',
+    createdAt: '2026-01-04 16:30',
+    docId: 'my_doc_3',
+    docTitle: 'Chính sách Coding Standards',
+    parentId: 'cm_d3_7',
+    mentions: ['VanC']
+  },
 ];
 
 const MOCK_DISCUSSIONS: Comment[] = [
@@ -387,17 +657,7 @@ let MOCK_DOCS: KMSDocument[] = [
     tags: ['agile', 'project-management', 'scrum'],
     viewCount: 120,
     downloadCount: 35,
-    comments: [
-      { 
-        id: 'cmt_my1', 
-        user: MOCK_USERS[2], 
-        content: 'Tài liệu này rất chi tiết và dễ hiểu, cảm ơn anh!', 
-        createdAt: '2026-01-06 10:00', 
-        docId: 'my_doc_1',
-        docTitle: 'Quy trình Quản lý Dự án 2026',
-        parentId: null
-      }
-    ],
+    comments: [],
     fileType: 'pdf',
     isShared: true,
     source: 'Nội bộ',
@@ -427,17 +687,7 @@ let MOCK_DOCS: KMSDocument[] = [
     tags: ['api', 'microservices', 'gateway', 'technical'],
     viewCount: 245,
     downloadCount: 67,
-    comments: [
-      { 
-        id: 'cmt_my2', 
-        user: MOCK_USERS[3], 
-        content: 'Phần rate limiting có thể giải thích rõ hơn không anh?', 
-        createdAt: '2026-01-04 15:30', 
-        docId: 'my_doc_2',
-        docTitle: 'Hướng dẫn Sử dụng API Gateway',
-        parentId: null
-      }
-    ],
+    comments: [],
     fileType: 'pdf',
     isShared: true,
     source: 'Nội bộ',
@@ -2246,7 +2496,11 @@ export const KMSService = {
         // Relevance mock: simplified as standard order or title match priority
     }
 
-    return docs;
+    // Enrich each doc's comments from MOCK_COMMENTS so the count badge is always accurate
+    return docs.map(d => ({
+      ...d,
+      comments: MOCK_COMMENTS.filter(c => c.docId === d.id)
+    }));
   },
   
   getSearchSuggestions: async (query: string) => {

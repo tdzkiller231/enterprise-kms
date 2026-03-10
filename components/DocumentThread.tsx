@@ -111,24 +111,26 @@ export const DocumentThread: React.FC<DocumentThreadProps> = ({
     const [showActions, setShowActions] = useState(false);
     const isEditing = editingComment === comment.id;
     const replies = buildCommentTree(comment.id);
+    const isOwn = comment.user.id === currentUserId;
 
     return (
-      <div className={`${depth > 0 ? 'ml-8 mt-3 pl-4 border-l-2 border-gray-200' : 'mb-4'}`}>
+      <div className={`${depth > 0 ? 'mt-3 pl-4 border-l-2 border-gray-200' : 'mb-4'} ${isOwn && depth === 0 ? 'flex flex-col items-end' : ''}`}>
         <div 
-          className="group relative"
+          className="group relative w-full"
           onMouseEnter={() => setShowActions(true)}
           onMouseLeave={() => setShowActions(false)}
         >
-          <div className="flex gap-3">
-            <img 
-              src={comment.user.avatar} 
-              alt={comment.user.name}
-              className="w-8 h-8 rounded-full flex-shrink-0"
-            />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="font-semibold text-sm text-gray-900">{comment.user.name}</span>
-                <span className="text-xs text-gray-500 flex items-center gap-1">
+          {isOwn ? (
+            /* === OWN COMMENT: right-aligned bubble === */
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-2 flex-row-reverse">
+                <img
+                  src={comment.user.avatar}
+                  alt={comment.user.name}
+                  className="w-8 h-8 rounded-full flex-shrink-0"
+                />
+                <span className="font-semibold text-sm text-indigo-700">Bạn</span>
+                <span className="text-xs text-gray-400 flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   {comment.createdAt}
                   {comment.isEdited && <span className="italic">(đã chỉnh sửa)</span>}
@@ -136,82 +138,109 @@ export const DocumentThread: React.FC<DocumentThreadProps> = ({
               </div>
 
               {isEditing ? (
-                <div className="space-y-2">
+                <div className="w-full space-y-2">
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     rows={3}
                     autoFocus
                   />
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleEditComment(comment.id)}>
-                      Lưu
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="secondary" 
-                      onClick={() => {
-                        setEditingComment(null);
-                        setEditContent('');
-                      }}
-                    >
-                      Hủy
-                    </Button>
+                  <div className="flex gap-2 justify-end">
+                    <Button size="sm" onClick={() => handleEditComment(comment.id)}>Lưu</Button>
+                    <Button size="sm" variant="secondary" onClick={() => { setEditingComment(null); setEditContent(''); }}>Hủy</Button>
                   </div>
                 </div>
               ) : (
-                <div className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                <div className="max-w-[85%] bg-indigo-600 text-white text-sm px-4 py-2.5 rounded-2xl rounded-tr-sm whitespace-pre-wrap break-words shadow-sm">
                   {comment.content}
                 </div>
               )}
 
               {!isEditing && (
-                <div className="mt-2 flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-row-reverse">
                   {canComment && (
-                    <button
-                      onClick={() => setReplyingTo(comment.id)}
-                      className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-                    >
-                      <Reply className="w-3 h-3" />
-                      Trả lời
+                    <button onClick={() => setReplyingTo(comment.id)} className="text-xs text-indigo-500 hover:text-indigo-700 flex items-center gap-1">
+                      <Reply className="w-3 h-3" />Trả lời
                     </button>
+                  )}
+                  {showActions && (
+                    <div className="flex gap-1">
+                      {canEditComment(comment) && (
+                        <button onClick={() => { setEditingComment(comment.id); setEditContent(comment.content); }} className="p-1 text-indigo-300 hover:text-white hover:bg-indigo-500 rounded" title="Chỉnh sửa"><Edit2 className="w-3.5 h-3.5" /></button>
+                      )}
+                      {canDeleteComment(comment) && (
+                        <button onClick={() => handleDeleteComment(comment.id)} className="p-1 text-red-300 hover:text-white hover:bg-red-500 rounded" title="Xóa"><Trash2 className="w-3.5 h-3.5" /></button>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
             </div>
+          ) : (
+            /* === OTHER USER COMMENT: left-aligned === */
+            <div className="flex gap-3">
+              <img
+                src={comment.user.avatar}
+                alt={comment.user.name}
+                className="w-8 h-8 rounded-full flex-shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="font-semibold text-sm text-gray-900">{comment.user.name}</span>
+                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {comment.createdAt}
+                    {comment.isEdited && <span className="italic">(đã chỉnh sửa)</span>}
+                  </span>
+                </div>
 
-            {/* Actions Menu */}
-            {showActions && !isEditing && (
-              <div className="flex gap-1">
-                {canEditComment(comment) && (
-                  <button
-                    onClick={() => {
-                      setEditingComment(comment.id);
-                      setEditContent(comment.content);
-                    }}
-                    className="p-1 text-gray-400 hover:text-indigo-600 rounded"
-                    title="Chỉnh sửa"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <textarea
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      rows={3}
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => handleEditComment(comment.id)}>Lưu</Button>
+                      <Button size="sm" variant="secondary" onClick={() => { setEditingComment(null); setEditContent(''); }}>Hủy</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="max-w-[85%] bg-gray-100 text-gray-800 text-sm px-4 py-2.5 rounded-2xl rounded-tl-sm whitespace-pre-wrap break-words">
+                    {comment.content}
+                  </div>
                 )}
-                {canDeleteComment(comment) && (
-                  <button
-                    onClick={() => handleDeleteComment(comment.id)}
-                    className="p-1 text-gray-400 hover:text-red-600 rounded"
-                    title="Xóa"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+
+                {!isEditing && (
+                  <div className="mt-2 flex items-center gap-3">
+                    {canComment && (
+                      <button onClick={() => setReplyingTo(comment.id)} className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                        <Reply className="w-3 h-3" />Trả lời
+                      </button>
+                    )}
+                    {showActions && (
+                      <div className="flex gap-1">
+                        {canEditComment(comment) && (
+                          <button onClick={() => { setEditingComment(comment.id); setEditContent(comment.content); }} className="p-1 text-gray-400 hover:text-indigo-600 rounded" title="Chỉnh sửa"><Edit2 className="w-4 h-4" /></button>
+                        )}
+                        {canDeleteComment(comment) && (
+                          <button onClick={() => handleDeleteComment(comment.id)} className="p-1 text-gray-400 hover:text-red-600 rounded" title="Xóa"><Trash2 className="w-4 h-4" /></button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Replies */}
           {replies.length > 0 && (
-            <div className="mt-3">
+            <div className={`mt-3 ${isOwn ? 'pr-11' : 'ml-11'}`}>
               {replies.map(reply => (
                 <CommentItem key={reply.id} comment={reply} depth={depth + 1} />
               ))}
@@ -220,7 +249,7 @@ export const DocumentThread: React.FC<DocumentThreadProps> = ({
 
           {/* Reply Input */}
           {replyingTo === comment.id && (
-            <div className="mt-3 ml-11">
+            <div className={`mt-3 ${isOwn ? 'mr-11' : 'ml-11'}`}>
               <div className="flex gap-2">
                 <textarea
                   ref={textareaRef}

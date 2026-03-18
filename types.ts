@@ -299,7 +299,14 @@ export interface UserActivityStats {
   downloadCount: number;     // Số lượt tải xuống
   uploadCount: number;       // Số tài liệu đã tải lên
   shareCount: number;        // Số lần chia sẻ
-  contributionCount: number; // Số đóng góp (comment, feedback)
+  ratingCount: number;       // Số lượt đánh giá
+  commentCount: number;      // Số lượt góp ý / bình luận
+  approveCount: number;      // Số lượt phê duyệt tài liệu
+  lessonsLearnedCount: number; // Số lượt chia sẻ Lessons Learned
+  cleanupCount: number;      // Số lượt làm sạch tri thức
+  contributionCount: number; // Tổng số đóng góp (comment + rate)
+  knowledgeContributionScore: number;
+  badge: string;
   lastActiveDate?: string;
 }
 
@@ -307,19 +314,26 @@ export interface DepartmentStats {
   department: string;
   memberCount: number;
   viewCount: number;
+  downloadCount: number;
   uploadCount: number;
   shareCount: number;
+  ratingCount: number;
+  commentCount: number;
+  approveCount: number;
+  lessonsLearnedCount: number;
+  cleanupCount: number;
   contributionScore: number; // Điểm đóng góp tổng hợp
 }
 
 export interface DocumentActivityLog {
   docId: string;
   docTitle: string;
-  activityType: 'view' | 'download' | 'upload' | 'share' | 'comment' | 'rate';
+  activityType: 'view' | 'download' | 'upload' | 'share' | 'comment' | 'rate' | 'approve' | 'lessonsLearned' | 'cleanup';
   userId: string;
   userName: string;
   department: string;
   timestamp: string;
+  contributionScore?: number;
   details?: string;
 }
 

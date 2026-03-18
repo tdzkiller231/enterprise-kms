@@ -2331,6 +2331,30 @@ const MOCK_ACTIVITY_LOGS: DocumentActivityLog[] = [
   { docId: 'd4', docTitle: 'Hướng dẫn Sử dụng Phần mềm CRM', activityType: 'share', userId: 'u1', userName: 'Nguyễn Văn A', department: 'CNTT', timestamp: '2024-12-15 09:45' },
 ];
 
+const CONTRIBUTION_POINT_RULES: Record<DocumentActivityLog['activityType'], number> = {
+  view: 0,
+  download: 2,
+  upload: 10,
+  share: 3,
+  comment: 4,
+  rate: 3,
+  approve: 8,
+  lessonsLearned: 12,
+  cleanup: 9,
+};
+
+const getActivityContributionScore = (activityType: DocumentActivityLog['activityType']): number => {
+  return CONTRIBUTION_POINT_RULES[activityType] || 0;
+};
+
+const getBadgeByScore = (score: number): string => {
+  if (score >= 150) return 'Chuyen gia Tri thuc';
+  if (score >= 90) return 'Huy hieu Vang';
+  if (score >= 50) return 'Huy hieu Bac';
+  if (score >= 20) return 'Huy hieu Dong';
+  return 'Thanh vien Moi';
+};
+
 // --- RBAC Mock Data ---
 let MOCK_ROLES: Role[] = [
   {
@@ -2922,7 +2946,14 @@ export const KMSService = {
       const downloadCount = filteredLogs.filter(l => l.userId === user.id && l.activityType === 'download').length;
       const uploadCount = filteredLogs.filter(l => l.userId === user.id && l.activityType === 'upload').length;
       const shareCount = filteredLogs.filter(l => l.userId === user.id && l.activityType === 'share').length;
-      const contributionCount = filteredLogs.filter(l => l.userId === user.id && (l.activityType === 'comment' || l.activityType === 'rate')).length;
+      const ratingCount = filteredLogs.filter(l => l.userId === user.id && l.activityType === 'rate').length;
+      const commentCount = filteredLogs.filter(l => l.userId === user.id && l.activityType === 'comment').length;
+      const approveCount = filteredLogs.filter(l => l.userId === user.id && l.activityType === 'approve').length;
+      const lessonsLearnedCount = filteredLogs.filter(l => l.userId === user.id && l.activityType === 'lessonsLearned').length;
+      const cleanupCount = filteredLogs.filter(l => l.userId === user.id && l.activityType === 'cleanup').length;
+      const contributionCount = commentCount + ratingCount;
+      const userLogs = filteredLogs.filter(l => l.userId === user.id);
+      const knowledgeContributionScore = userLogs.reduce((sum, log) => sum + getActivityContributionScore(log.activityType), 0);
       
       userStatsMap.set(user.id, {
         userId: user.id,
@@ -2933,8 +2964,15 @@ export const KMSService = {
         downloadCount,
         uploadCount,
         shareCount,
+        ratingCount,
+        commentCount,
+        approveCount,
+        lessonsLearnedCount,
+        cleanupCount,
         contributionCount,
-        lastActiveDate: filteredLogs.filter(l => l.userId === user.id).sort((a, b) => b.timestamp.localeCompare(a.timestamp))[0]?.timestamp
+        knowledgeContributionScore,
+        badge: getBadgeByScore(knowledgeContributionScore),
+        lastActiveDate: userLogs.sort((a, b) => b.timestamp.localeCompare(a.timestamp))[0]?.timestamp
       });
     });
     
@@ -2950,9 +2988,15 @@ export const KMSService = {
         department: dept,
         memberCount: deptUsers.length,
         viewCount: deptLogs.filter(l => l.activityType === 'view').length,
+        downloadCount: deptLogs.filter(l => l.activityType === 'download').length,
         uploadCount: deptLogs.filter(l => l.activityType === 'upload').length,
         shareCount: deptLogs.filter(l => l.activityType === 'share').length,
-        contributionScore: deptLogs.length * 10 + deptLogs.filter(l => l.activityType === 'upload').length * 50
+        ratingCount: deptLogs.filter(l => l.activityType === 'rate').length,
+        commentCount: deptLogs.filter(l => l.activityType === 'comment').length,
+        approveCount: deptLogs.filter(l => l.activityType === 'approve').length,
+        lessonsLearnedCount: deptLogs.filter(l => l.activityType === 'lessonsLearned').length,
+        cleanupCount: deptLogs.filter(l => l.activityType === 'cleanup').length,
+        contributionScore: deptLogs.reduce((sum, log) => sum + getActivityContributionScore(log.activityType), 0)
       });
     });
     
@@ -2998,16 +3042,25 @@ export const KMSService = {
       
       contributionStats: Array.from(deptMap.values()).map(d => ({
         dept: d.department,
-        count: d.uploadCount
+        count: d.contributionScore
       })),
       
-      userActivityStats: Array.from(userStatsMap.values()).sort((a, b) => 
-        (b.viewCount + b.uploadCount + b.shareCount) - (a.viewCount + a.uploadCount + a.shareCount)
-      ),
+      userActivityStats: Array.from(userStatsMap.values()).sort((a, b) => {
+        if (b.knowledgeContributionScore !== a.knowledgeContributionScore) {
+          return b.knowledgeContributionScore - a.knowledgeContributionScore;
+        }
+        return b.uploadCount - a.uploadCount;
+      }),
       
       departmentStats: Array.from(deptMap.values()).sort((a, b) => b.contributionScore - a.contributionScore),
       
-      activityLogs: filteredLogs.sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 50),
+      activityLogs: filteredLogs
+        .map(log => ({
+          ...log,
+          contributionScore: getActivityContributionScore(log.activityType),
+        }))
+        .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+        .slice(0, 50),
       
       timeSeriesData
     };

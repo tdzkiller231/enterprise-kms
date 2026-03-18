@@ -2,17 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { KMSService } from '../services/kmsService';
 import { ReportStats, ReportFilters, User } from '../types';
 import { Card } from '../components/UI';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { BarChart2, PieChart as PieIcon, TrendingUp, AlertTriangle, Download, Filter, Users, Building2, Calendar, FileText, Upload, Share2, MessageSquare, RefreshCw, Star } from 'lucide-react';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export const Reports: React.FC = () => {
   const [data, setData] = useState<ReportStats | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'departments' | 'activities'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'ranking'>('overview');
+  const [rankingTab, setRankingTab] = useState<'users' | 'departments'>('users');
   const [filters, setFilters] = useState<ReportFilters>({});
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const getDepartmentBadge = (score: number): string => {
+    if (score >= 250) return 'Đơn vị Tiên phong';
+    if (score >= 160) return 'Đơn vị Vàng';
+    if (score >= 100) return 'Đơn vị Bạc';
+    if (score >= 50) return 'Đơn vị Đồng';
+    return 'Đang tăng tốc';
+  };
 
   useEffect(() => {
     loadUsers();
@@ -53,20 +62,15 @@ export const Reports: React.FC = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
     
     // Export based on active tab
-    if (activeTab === 'users') {
-      csvContent += "Người dùng,Phòng ban,Lượt tải,Tải lên,Chia sẻ,Đóng góp\n";
+    if (activeTab === 'ranking' && rankingTab === 'users') {
+      csvContent += "Người dùng,Phòng ban,Lượt tải,Tải lên,Chia sẻ,Đánh giá,Góp ý,Phê duyệt,Tổng điểm\n";
       data.userActivityStats.forEach(user => {
-        csvContent += `${user.userName},${user.department},${user.downloadCount},${user.uploadCount},${user.shareCount},${user.contributionCount}\n`;
+        csvContent += `${user.userName},${user.department},${user.downloadCount},${user.uploadCount},${user.shareCount},${user.ratingCount},${user.commentCount},${user.approveCount},${user.knowledgeContributionScore}\n`;
       });
-    } else if (activeTab === 'departments') {
-      csvContent += "Phòng ban,Số thành viên,Tải lên,Chia sẻ,Điểm đóng góp\n";
+    } else if (activeTab === 'ranking' && rankingTab === 'departments') {
+      csvContent += "Phòng ban,Số thành viên,Tải lên,Tải xuống,Chia sẻ,Đánh giá,Góp ý,Phê duyệt,Lessons Learned,Làm sạch tri thức,Điểm đóng góp,Huy hiệu phòng ban\n";
       data.departmentStats.forEach(dept => {
-        csvContent += `${dept.department},${dept.memberCount},${dept.uploadCount},${dept.shareCount},${dept.contributionScore}\n`;
-      });
-    } else if (activeTab === 'activities') {
-      csvContent += "Thời gian,Người dùng,Phòng ban,Hoạt động,Tài liệu\n";
-      data.activityLogs.forEach(log => {
-        csvContent += `${log.timestamp},${log.userName},${log.department},${log.activityType},${log.docTitle}\n`;
+        csvContent += `${dept.department},${dept.memberCount},${dept.uploadCount},${dept.downloadCount},${dept.shareCount},${dept.ratingCount},${dept.commentCount},${dept.approveCount},${dept.lessonsLearnedCount},${dept.cleanupCount},${dept.contributionScore},${getDepartmentBadge(dept.contributionScore)}\n`;
       });
     } else {
       csvContent += "Tổng quan hệ thống\n";
@@ -79,7 +83,8 @@ export const Reports: React.FC = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `bao_cao_${activeTab}_${new Date().toISOString().split('T')[0]}.csv`);
+    const tabName = activeTab === 'ranking' ? `bxh_${rankingTab}` : activeTab;
+    link.setAttribute("download", `bao_cao_${tabName}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -194,25 +199,11 @@ export const Reports: React.FC = () => {
            Tổng quan
         </button>
         <button 
-           onClick={() => setActiveTab('users')}
-           className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'users' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:text-gray-900'}`}
+          onClick={() => setActiveTab('ranking')}
+          className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'ranking' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:text-gray-900'}`}
         >
            <Users className="w-4 h-4 inline mr-1" />
-           Người dùng
-        </button>
-        <button 
-           onClick={() => setActiveTab('departments')}
-           className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'departments' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:text-gray-900'}`}
-        >
-           <Building2 className="w-4 h-4 inline mr-1" />
-           Phòng ban
-        </button>
-        <button 
-           onClick={() => setActiveTab('activities')}
-           className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'activities' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:text-gray-900'}`}
-        >
-           <FileText className="w-4 h-4 inline mr-1" />
-           Nhật ký hoạt động
+          Bảng xếp hạng
         </button>
       </div>
 
@@ -272,26 +263,6 @@ export const Reports: React.FC = () => {
             </div>
           </div>
           
-          {/* Time Series Chart */}
-          {data.timeSeriesData && data.timeSeriesData.length > 0 && (
-            <Card title="Xu hướng hoạt động 7 ngày qua">
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={data.timeSeriesData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="downloads" name="Lượt tải" stroke="#10b981" strokeWidth={2} />
-                    <Line type="monotone" dataKey="uploads" name="Tải lên" stroke="#f59e0b" strokeWidth={2} />
-                    <Line type="monotone" dataKey="shares" name="Chia sẻ" stroke="#ec4899" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-          )}
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card title="Số lượng tài liệu theo Danh mục">
               <div className="h-80">
@@ -340,9 +311,8 @@ export const Reports: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">STT</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Xếp hạng</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tên tài liệu</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Lượt xem</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Lượt tải</th>
                   </tr>
                 </thead>
@@ -351,7 +321,6 @@ export const Reports: React.FC = () => {
                     <tr key={idx} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm text-gray-500">{idx + 1}</td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.docName}</td>
-                      <td className="px-6 py-4 text-right text-sm text-gray-500">{item.views}</td>
                       <td className="px-6 py-4 text-right text-sm text-gray-500">{item.downloads}</td>
                     </tr>
                   ))}
@@ -400,9 +369,27 @@ export const Reports: React.FC = () => {
         </div>
       )}
 
-      {/* Users Tab */}
-      {activeTab === 'users' && (
+      {/* Ranking Tab */}
+      {activeTab === 'ranking' && (
         <div className="space-y-6">
+          <div className="bg-white p-2 rounded-lg shadow inline-flex">
+            <button
+              onClick={() => setRankingTab('users')}
+              className={`px-4 py-2 rounded-md text-sm font-medium ${rankingTab === 'users' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              <Users className="w-4 h-4 inline mr-1" />
+              BXH người dùng
+            </button>
+            <button
+              onClick={() => setRankingTab('departments')}
+              className={`px-4 py-2 rounded-md text-sm font-medium ${rankingTab === 'departments' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              <Building2 className="w-4 h-4 inline mr-1" />
+              BXH phòng ban
+            </button>
+          </div>
+
+          {rankingTab === 'users' && (
           <Card title="Bảng xếp hạng Người dùng tích cực">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -426,21 +413,27 @@ export const Reports: React.FC = () => {
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                       <MessageSquare className="w-4 h-4 inline mr-1" />Góp ý
                     </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Phê duyệt</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Tổng điểm</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {data.userActivityStats.map((user, idx) => {
                     return (
                       <tr key={user.userId} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className="px-6 py-4 text-sm">
                           {idx < 3 ? (
-                            <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-white font-bold ${
-                              idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-orange-600'
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full font-semibold ${
+                              idx === 0
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : idx === 1
+                                ? 'bg-gray-100 text-gray-700'
+                                : 'bg-orange-100 text-orange-800'
                             }`}>
-                              {idx + 1}
+                              Top {idx + 1}
                             </span>
                           ) : (
-                            idx + 1
+                            <span className="text-gray-600 font-medium">#{idx + 1}</span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -456,7 +449,9 @@ export const Reports: React.FC = () => {
                         <td className="px-6 py-4 text-right text-sm text-green-600 font-semibold">{user.uploadCount}</td>
                         <td className="px-6 py-4 text-right text-sm text-blue-600 font-semibold">{user.shareCount}</td>
                         <td className="px-6 py-4 text-right text-sm text-yellow-600 font-semibold">{user.ratingCount || 0}</td>
-                        <td className="px-6 py-4 text-right text-sm text-purple-600 font-semibold">{user.contributionCount}</td>
+                        <td className="px-6 py-4 text-right text-sm text-purple-600 font-semibold">{user.commentCount}</td>
+                        <td className="px-6 py-4 text-right text-sm text-indigo-600 font-semibold">{user.approveCount}</td>
+                        <td className="px-6 py-4 text-right text-sm font-bold text-emerald-700">{user.knowledgeContributionScore}</td>
                       </tr>
                     );
                   })}
@@ -464,13 +459,11 @@ export const Reports: React.FC = () => {
               </table>
             </div>
           </Card>
-        </div>
-      )}
+          )}
 
-      {/* Departments Tab */}
-      {activeTab === 'departments' && (
-        <div className="space-y-6">
-          <Card title="Thống kê theo Phòng ban">
+          {rankingTab === 'departments' && (
+          <>
+          <Card title="Bảng xếp hạng Phòng ban">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -478,8 +471,12 @@ export const Reports: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phòng ban</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Số thành viên</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Tải lên</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Tải xuống</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Chia sẻ</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Phê duyệt</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Làm sạch</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Điểm đóng góp</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Huy hiệu</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Xếp hạng</th>
                   </tr>
                 </thead>
@@ -494,8 +491,12 @@ export const Reports: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 text-right text-sm text-gray-500">{dept.memberCount}</td>
                       <td className="px-6 py-4 text-right text-sm text-green-600 font-semibold">{dept.uploadCount}</td>
+                      <td className="px-6 py-4 text-right text-sm text-gray-700">{dept.downloadCount}</td>
                       <td className="px-6 py-4 text-right text-sm text-blue-600 font-semibold">{dept.shareCount}</td>
+                      <td className="px-6 py-4 text-right text-sm text-indigo-600 font-semibold">{dept.approveCount}</td>
+                      <td className="px-6 py-4 text-right text-sm text-rose-700 font-semibold">{dept.cleanupCount}</td>
                       <td className="px-6 py-4 text-right text-sm font-bold text-indigo-600">{dept.contributionScore}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{getDepartmentBadge(dept.contributionScore)}</td>
                       <td className="px-6 py-4 text-right text-sm">
                         {idx < 3 ? (
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -515,8 +516,7 @@ export const Reports: React.FC = () => {
               </table>
             </div>
           </Card>
-          
-          {/* Department Contribution Chart */}
+
           <Card title="Biểu đồ Đóng góp theo Phòng ban">
             <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
@@ -534,66 +534,8 @@ export const Reports: React.FC = () => {
               </ResponsiveContainer>
             </div>
           </Card>
-        </div>
-      )}
-
-      {/* Activities Tab */}
-      {activeTab === 'activities' && (
-        <div className="space-y-6">
-          <Card title="Nhật ký Hoạt động Chi tiết">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thời gian</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Người dùng</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phòng ban</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hoạt động</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tài liệu</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Chi tiết</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {data.activityLogs.map((log, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(log.timestamp).toLocaleString('vi-VN')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {log.userName}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {log.department}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          log.activityType === 'view' ? 'bg-blue-100 text-blue-800' :
-                          log.activityType === 'download' ? 'bg-purple-100 text-purple-800' :
-                          log.activityType === 'upload' ? 'bg-green-100 text-green-800' :
-                          log.activityType === 'share' ? 'bg-orange-100 text-orange-800' :
-                          log.activityType === 'comment' ? 'bg-pink-100 text-pink-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {log.activityType === 'view' ? '👁️ Xem' :
-                           log.activityType === 'download' ? '⬇️ Tải xuống' :
-                           log.activityType === 'upload' ? '⬆️ Tải lên' :
-                           log.activityType === 'share' ? '🔗 Chia sẻ' :
-                           log.activityType === 'comment' ? '💬 Bình luận' :
-                           '⭐ Đánh giá'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 max-w-md truncate">
-                        {log.docTitle}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {log.details || '-'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+          </>
+          )}
         </div>
       )}
     </div>

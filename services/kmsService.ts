@@ -1198,7 +1198,14 @@ let MOCK_DOCS: KMSDocument[] = [
     tags: ['security', 'policy'],
     viewCount: 5,
     downloadCount: 0,
-    comments: [],
+    comments: [
+      {
+        id: 'cm-appr1-u1',
+        user: MOCK_USERS[0],
+        content: 'Đề nghị bổ sung phần phân quyền theo vai trò để dễ áp dụng ở các phòng ban.',
+        createdAt: '2024-06-28 15:10'
+      }
+    ],
     fileType: 'pdf',
     source: 'Nội bộ',
     avgRating: 0,
@@ -1246,7 +1253,14 @@ let MOCK_DOCS: KMSDocument[] = [
     tags: ['design', 'uiux'],
     viewCount: 45,
     downloadCount: 12,
-    comments: [],
+    comments: [
+      {
+        id: 'cm-appr3-u1',
+        user: MOCK_USERS[0],
+        content: 'Đã áp dụng tốt cho màn dashboard, đề xuất ghi nhận và chuẩn hóa thêm cho mobile.',
+        createdAt: '2024-06-27 11:05'
+      }
+    ],
     fileType: 'pdf',
     source: 'Nội bộ',
     avgRating: 4.2,
@@ -1458,6 +1472,100 @@ let MOCK_DOCS: KMSDocument[] = [
     approvalDate: '2024-06-26 11:20',
     approverName: 'Trần Thị B (Manager)',
     approverLevel1Avatar: MOCK_USERS[1].avatar
+  },
+  {
+    id: 'rej1',
+    title: 'Quy trình Quản lý Tài sản CNTT (Bản đề xuất)',
+    description: 'Bản đề xuất quy trình theo dõi vòng đời tài sản CNTT trong doanh nghiệp.',
+    summary: 'Đề xuất chuẩn hóa khâu cấp phát, kiểm kê, bảo trì và thanh lý tài sản CNTT theo chu kỳ.',
+    categoryIds: ['c2'],
+    categoryId: 'c2',
+    spaceId: 's1',
+    createdBy: MOCK_USERS[0],
+    createdAt: '2024-07-01',
+    status: DocStatus.REJECTED,
+    lifecycleStatus: 'RejectedLevel1' as LifecycleStatus,
+    versions: [
+      { version: '1.0', updatedAt: '2024-07-01', updatedBy: 'Nguyễn Văn A', changeLog: 'Gửi duyệt lần đầu' }
+    ],
+    tags: ['asset', 'it', 'process'],
+    viewCount: 6,
+    downloadCount: 0,
+    comments: [
+      {
+        id: 'cm-rej1-u1',
+        user: MOCK_USERS[0],
+        content: 'Nhờ team phản hồi rõ tiêu chí KPI cần bổ sung để mình cập nhật phiên bản kế tiếp.',
+        createdAt: '2024-07-02 09:35'
+      }
+    ],
+    fileType: 'docx',
+    source: 'Nội bộ',
+    avgRating: 0,
+    ratingCount: 0,
+    rejectReason: 'Nội dung chưa có KPI đo lường và thiếu quy định bàn giao.',
+    rejectedBy: 'Trần Thị B (Manager)',
+    rejectedAt: '2024-07-02 09:10'
+  },
+  {
+    id: 'rej2',
+    title: 'Hướng dẫn Triển khai VPN cho Chi nhánh',
+    description: 'Tài liệu kỹ thuật triển khai VPN site-to-site cho các chi nhánh.',
+    summary: 'Mô tả mô hình kết nối, cấu hình firewall và checklist nghiệm thu khi triển khai VPN.',
+    categoryIds: ['c2', 'c2-2'],
+    categoryId: 'c2',
+    spaceId: 's1',
+    createdBy: MOCK_USERS[0],
+    createdAt: '2024-07-03',
+    status: DocStatus.REJECTED,
+    lifecycleStatus: 'RejectedLevel2' as LifecycleStatus,
+    versions: [
+      { version: '1.2', updatedAt: '2024-07-03', updatedBy: 'Nguyễn Văn A', changeLog: 'Bổ sung sơ đồ mạng' }
+    ],
+    tags: ['vpn', 'network', 'security'],
+    viewCount: 11,
+    downloadCount: 2,
+    comments: [],
+    fileType: 'pdf',
+    source: 'Nội bộ',
+    avgRating: 0,
+    ratingCount: 0,
+    approverLevel1Name: 'Trần Thị B (Manager)',
+    approverLevel1Date: '2024-07-04 08:45',
+    rejectReasonLevel2: 'Thiếu phương án rollback và chưa có ma trận phân quyền truy cập.',
+    rejectedByLevel2: 'Lê Văn C (Chuyên gia)',
+    rejectedAtLevel2: '2024-07-04 16:20'
+  },
+  {
+    id: 'rej3',
+    title: 'Chính sách Sao lưu Dữ liệu Khối Văn phòng',
+    description: 'Đề xuất chính sách backup định kỳ cho dữ liệu vận hành nội bộ.',
+    summary: 'Định nghĩa lịch sao lưu, thời gian lưu trữ, phân loại dữ liệu và quy trình khôi phục sự cố.',
+    categoryIds: ['c1'],
+    categoryId: 'c1',
+    spaceId: 's3',
+    createdBy: MOCK_USERS[0],
+    createdAt: '2024-07-05',
+    status: DocStatus.REJECTED,
+    lifecycleStatus: 'RejectedLevel3' as LifecycleStatus,
+    versions: [
+      { version: '1.0', updatedAt: '2024-07-05', updatedBy: 'Nguyễn Văn A', changeLog: 'Bản đề xuất ban đầu' }
+    ],
+    tags: ['backup', 'policy', 'office'],
+    viewCount: 9,
+    downloadCount: 1,
+    comments: [],
+    fileType: 'pdf',
+    source: 'Nội bộ',
+    avgRating: 0,
+    ratingCount: 0,
+    approverLevel1Name: 'Trần Thị B (Manager)',
+    approverLevel1Date: '2024-07-06 10:00',
+    approverLevel2Name: 'Lê Văn C (Chuyên gia)',
+    approverLevel2Date: '2024-07-06 14:10',
+    rejectReasonLevel3: 'Phạm vi áp dụng còn mơ hồ và chưa có phân tích chi phí hạ tầng lưu trữ.',
+    rejectedByLevel3: 'Nguyễn Văn A (Admin)',
+    rejectedAtLevel3: '2024-07-07 09:25'
   },
 
   // --- More Approved Documents for Space s1 (Khối Kỹ thuật) ---

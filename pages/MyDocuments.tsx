@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { KMSService } from '../services/kmsService';
-import { KMSDocument, Category, Space, User, ViewHistory, DownloadHistory } from '../types';
+import { KMSDocument, Category, Space, User, ViewHistory, DownloadHistory, DocStatus } from '../types';
 import { Button, Modal } from '../components/UI';
 import { 
   FileText, Heart, Eye, Download, Star, Bell, Clock, Share2,
@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 
 type TabType = 'uploaded' | 'shared' | 'commented' | 'expired';
+type UploadedSubTabType = 'pending' | 'approved' | 'rejected';
+type CommentedSubTabType = 'pending' | 'accepted' | 'rejected';
 
 export const MyDocuments: React.FC = () => {
   const [currentUser] = useState<User>({ 
@@ -19,10 +21,11 @@ export const MyDocuments: React.FC = () => {
 
   // Tab state
   const [activeTab, setActiveTab] = useState<TabType>('uploaded');
+  const [uploadedSubTab, setUploadedSubTab] = useState<UploadedSubTabType>('pending');
+  const [commentedSubTab, setCommentedSubTab] = useState<CommentedSubTabType>('pending');
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterSpace, setFilterSpace] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
 
   // Data - Documents
@@ -43,12 +46,12 @@ export const MyDocuments: React.FC = () => {
   // Detail View
   const [selectedDoc, setSelectedDoc] = useState<KMSDocument | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [rejectReasonOpen, setRejectReasonOpen] = useState(false);
   
   // Update Expired Document
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
-  const [updateReason, setUpdateReason] = useState('');
   const [newExpiryDate, setNewExpiryDate] = useState('');
-  const [newFileVersion, setNewFileVersion] = useState('');
+  const [attachedUpdateFile, setAttachedUpdateFile] = useState<File | null>(null);
 
   // Stats
   const [stats, setStats] = useState({
@@ -145,29 +148,63 @@ export const MyDocuments: React.FC = () => {
   };
 
   const handleUpdateExpiredDocument = async () => {
-    if (!selectedDoc || !newExpiryDate || !updateReason.trim()) {
+    if (!selectedDoc || !newExpiryDate || !attachedUpdateFile) {
       alert('Vui lòng nhập đầy đủ thông tin');
       return;
     }
     await KMSService.updateExpiredDocument(selectedDoc.id, {
       newExpiryDate,
-      reason: updateReason,
-      newVersion: newFileVersion || undefined
+      reason: `Đính kèm file cập nhật: ${attachedUpdateFile.name}`
     });
     alert('Đã cập nhật tài liệu! Tài liệu sẽ đi vào quy trình phê duyệt lại từ đầu.');
     setUpdateModalOpen(false);
-    setUpdateReason('');
     setNewExpiryDate('');
-    setNewFileVersion('');
+    setAttachedUpdateFile(null);
     loadData();
   };
 
   // Get docs based on active tab
+  const isRejectedDoc = (doc: KMSDocument): boolean => {
+    return doc.status === DocStatus.REJECTED || doc.lifecycleStatus.startsWith('Rejected');
+  };
+
+  const isPendingDoc = (doc: KMSDocument): boolean => {
+    return doc.status === DocStatus.PENDING || doc.lifecycleStatus.startsWith('Pending');
+  };
+
+  const isApprovedDoc = (doc: KMSDocument): boolean => {
+    return doc.status === DocStatus.APPROVED
+      || ['Active', 'NearExpired', 'Expired', 'ApprovedLevel1', 'ApprovedLevel2', 'ApprovedLevel3'].includes(doc.lifecycleStatus);
+  };
+
+  const isCommentPending = (doc: KMSDocument): boolean => {
+    return doc.status === DocStatus.PENDING || doc.lifecycleStatus.startsWith('Pending');
+  };
+
+  const isCommentAccepted = (doc: KMSDocument): boolean => {
+    return doc.status === DocStatus.APPROVED
+      || ['Active', 'NearExpired', 'Expired', 'ApprovedLevel1', 'ApprovedLevel2', 'ApprovedLevel3'].includes(doc.lifecycleStatus);
+  };
+
+  const isCommentRejected = (doc: KMSDocument): boolean => {
+    return doc.status === DocStatus.REJECTED || doc.lifecycleStatus.startsWith('Rejected');
+  };
+
   const getTabDocs = (): KMSDocument[] => {
     switch(activeTab) {
-      case 'uploaded': return myCreatedDocs;
+      case 'uploaded':
+        return myCreatedDocs.filter(doc => {
+          if (uploadedSubTab === 'pending') return isPendingDoc(doc);
+          if (uploadedSubTab === 'approved') return isApprovedDoc(doc);
+          return isRejectedDoc(doc);
+        });
       case 'shared': return sharedDocs;
-      case 'commented': return commentedDocs;
+      case 'commented':
+        return commentedDocs.filter(doc => {
+          if (commentedSubTab === 'pending') return isCommentPending(doc);
+          if (commentedSubTab === 'accepted') return isCommentAccepted(doc);
+          return isCommentRejected(doc);
+        });
       case 'expired': return myExpiredDocs;
       default: return myCreatedDocs;
     }
@@ -175,9 +212,8 @@ export const MyDocuments: React.FC = () => {
 
   const filteredDocs = getTabDocs().filter(doc => {
     const matchSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchSpace = filterSpace ? doc.spaceId === filterSpace : true;
     const matchCategory = filterCategory ? doc.categoryId === filterCategory : true;
-    return matchSearch && matchSpace && matchCategory;
+    return matchSearch && matchCategory;
   });
 
   const getStatusBadge = (doc: KMSDocument) => {
@@ -205,6 +241,31 @@ export const MyDocuments: React.FC = () => {
 
   const isFavorite = (docId: string) => favoriteDocs.some(d => d.id === docId);
   const isFollowing = (docId: string) => followingDocs.some(d => d.id === docId);
+
+  const getRejectedInfo = (doc: KMSDocument) => {
+    if (doc.lifecycleStatus === 'RejectedLevel3') {
+      return {
+        level: 'Cấp 3',
+        reason: doc.rejectReasonLevel3 || doc.rejectReason || 'Chưa có lý do cụ thể.',
+        by: doc.rejectedByLevel3 || doc.rejectedBy || 'Chưa rõ',
+        at: doc.rejectedAtLevel3 || doc.rejectedAt || 'Chưa rõ'
+      };
+    }
+    if (doc.lifecycleStatus === 'RejectedLevel2') {
+      return {
+        level: 'Cấp 2',
+        reason: doc.rejectReasonLevel2 || doc.rejectReason || 'Chưa có lý do cụ thể.',
+        by: doc.rejectedByLevel2 || doc.rejectedBy || 'Chưa rõ',
+        at: doc.rejectedAtLevel2 || doc.rejectedAt || 'Chưa rõ'
+      };
+    }
+    return {
+      level: 'Cấp 1',
+      reason: doc.rejectReason || 'Chưa có lý do cụ thể.',
+      by: doc.rejectedBy || 'Chưa rõ',
+      at: doc.rejectedAt || 'Chưa rõ'
+    };
+  };
 
   return (
     <div className="p-6 bg-white">
@@ -309,17 +370,6 @@ export const MyDocuments: React.FC = () => {
 
         <select
           className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
-          value={filterSpace}
-          onChange={(e) => setFilterSpace(e.target.value)}
-        >
-          <option value="">Tất cả không gian</option>
-          {spaces.map(sp => (
-            <option key={sp.id} value={sp.id}>{sp.name}</option>
-          ))}
-        </select>
-
-        <select
-          className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
         >
@@ -332,8 +382,76 @@ export const MyDocuments: React.FC = () => {
 
       {/* Documents Table */}
       <div className="border border-gray-200 rounded mb-6">
-        <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+        <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-gray-700 uppercase">Tài liệu</h2>
+          {activeTab === 'uploaded' && (
+            <div className="inline-flex items-center rounded border border-gray-200 bg-white p-1">
+              <button
+                onClick={() => setUploadedSubTab('pending')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  uploadedSubTab === 'pending'
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Chờ duyệt
+              </button>
+              <button
+                onClick={() => setUploadedSubTab('approved')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  uploadedSubTab === 'approved'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Được phê duyệt
+              </button>
+              <button
+                onClick={() => setUploadedSubTab('rejected')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  uploadedSubTab === 'rejected'
+                    ? 'bg-rose-100 text-rose-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Bị từ chối
+              </button>
+            </div>
+          )}
+          {activeTab === 'commented' && (
+            <div className="inline-flex items-center rounded border border-gray-200 bg-white p-1">
+              <button
+                onClick={() => setCommentedSubTab('pending')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  commentedSubTab === 'pending'
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Chờ phản hồi
+              </button>
+              <button
+                onClick={() => setCommentedSubTab('accepted')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  commentedSubTab === 'accepted'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Được ghi nhận
+              </button>
+              <button
+                onClick={() => setCommentedSubTab('rejected')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  commentedSubTab === 'rejected'
+                    ? 'bg-rose-100 text-rose-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Bị từ chối
+              </button>
+            </div>
+          )}
         </div>
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -345,11 +463,13 @@ export const MyDocuments: React.FC = () => {
                 Tên tài liệu
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Không gian
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Danh mục
               </th>
+              {activeTab === 'shared' && (
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Người chia sẻ
+                </th>
+              )}
               {activeTab === 'expired' && (
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Trạng thái
@@ -366,7 +486,7 @@ export const MyDocuments: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredDocs.length === 0 ? (
               <tr>
-                <td colSpan={activeTab === 'expired' ? 7 : 6} className="px-4 py-12 text-center text-gray-500">
+                <td colSpan={activeTab === 'expired' || activeTab === 'shared' ? 6 : 5} className="px-4 py-12 text-center text-gray-500">
                   Không có tài liệu nào
                 </td>
               </tr>
@@ -388,11 +508,13 @@ export const MyDocuments: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-700">
-                    {getSpaceName(doc.spaceId)}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
                     {getCategoryName(doc.categoryId)}
                   </td>
+                  {activeTab === 'shared' && (
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      {doc.createdBy?.name || 'N/A'}
+                    </td>
+                  )}
                   {activeTab === 'expired' && (
                     <td className="px-4 py-3">
                       {getStatusBadge(doc)}
@@ -424,7 +546,11 @@ export const MyDocuments: React.FC = () => {
                       <button
                         onClick={() => {
                           setSelectedDoc(doc);
-                          setDetailOpen(true);
+                          if (isRejectedDoc(doc)) {
+                            setRejectReasonOpen(true);
+                          } else {
+                            setDetailOpen(true);
+                          }
                         }}
                         className="p-1 hover:bg-gray-100 rounded text-blue-600"
                         title="Xem"
@@ -531,14 +657,54 @@ export const MyDocuments: React.FC = () => {
         )}
       </Modal>
 
+      {/* Rejected Reason Modal */}
+      <Modal
+        isOpen={rejectReasonOpen}
+        onClose={() => setRejectReasonOpen(false)}
+        title="Lý do bị từ chối"
+        footer={
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => setRejectReasonOpen(false)}>Đóng</Button>
+          </div>
+        }
+      >
+        {selectedDoc && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs text-gray-500 uppercase font-medium">Tên tài liệu</label>
+              <p className="text-sm font-medium text-gray-900 mt-1">{selectedDoc.title}</p>
+            </div>
+
+            <div className="p-3 bg-red-50 border border-red-200 rounded space-y-2">
+              <p className="text-sm font-semibold text-red-900">
+                Bị từ chối ở {getRejectedInfo(selectedDoc).level}
+              </p>
+              <p className="text-sm text-red-800 whitespace-pre-wrap">
+                {getRejectedInfo(selectedDoc).reason}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs text-gray-500 uppercase font-medium">Người từ chối</label>
+                <p className="text-sm text-gray-900 mt-1">{getRejectedInfo(selectedDoc).by}</p>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 uppercase font-medium">Thời điểm từ chối</label>
+                <p className="text-sm text-gray-900 mt-1">{getRejectedInfo(selectedDoc).at}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
       {/* Update Expired Document Modal */}
       <Modal
         isOpen={updateModalOpen}
         onClose={() => {
           setUpdateModalOpen(false);
-          setUpdateReason('');
           setNewExpiryDate('');
-          setNewFileVersion('');
+          setAttachedUpdateFile(null);
         }}
         title="Cập nhật tài liệu hết hạn"
         footer={
@@ -553,21 +719,6 @@ export const MyDocuments: React.FC = () => {
       >
         {selectedDoc && (
           <div className="space-y-4">
-            <div className="p-3 bg-red-50 border border-red-200 rounded">
-              <p className="text-sm font-medium text-red-900">{selectedDoc.title}</p>
-              <p className="text-xs text-red-700 mt-1">
-                Ngày hết hạn cũ: {selectedDoc.expiryDate ? new Date(selectedDoc.expiryDate).toLocaleDateString('vi-VN') : 'Không có'}
-                {isExpired(selectedDoc) && ' ⚠️ Đã hết hạn'}
-                {isExpiringSoon(selectedDoc) && ` ⚠️ Còn ${getDaysUntilExpiry(selectedDoc)} ngày`}
-              </p>
-            </div>
-
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-              <p className="text-xs text-blue-900">
-                ℹ️ Tài liệu này sẽ được cập nhật và đi vào <strong>quy trình phê duyệt lại từ đầu</strong> (Cấp 1 → Cấp 2 → Cấp 3)
-              </p>
-            </div>
-            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Ngày hết hạn mới <span className="text-red-500">*</span>
@@ -583,37 +734,13 @@ export const MyDocuments: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phiên bản mới (tùy chọn)
+                Đính kèm file <span className="text-red-500">*</span>
               </label>
               <input
-                type="text"
+                type="file"
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
-                value={newFileVersion}
-                onChange={(e) => setNewFileVersion(e.target.value)}
-                placeholder="VD: 2.0, 2024.1, etc."
+                onChange={(e) => setAttachedUpdateFile(e.target.files?.[0] || null)}
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nội dung cập nhật <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
-                rows={4}
-                value={updateReason}
-                onChange={(e) => setUpdateReason(e.target.value)}
-                placeholder="Mô tả những thay đổi/cập nhật trong phiên bản mới này..."
-              />
-            </div>
-
-            <div className="text-xs text-gray-500 border-t pt-3">
-              <p><strong>Quy trình sau khi cập nhật:</strong></p>
-              <ol className="list-decimal list-inside mt-2 space-y-1">
-                <li>Tài liệu chuyển về trạng thái "Chờ duyệt Cấp 1"</li>
-                <li>Đi qua quy trình phê duyệt 3 cấp</li>
-                <li>Sau khi được phê duyệt đầy đủ, tài liệu sẽ có hiệu lực với ngày hết hạn mới</li>
-              </ol>
             </div>
           </div>
         )}

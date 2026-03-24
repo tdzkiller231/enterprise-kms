@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { KMSService } from '../services/kmsService';
 import { CollectedDocument, CollectionStatus, CollectionSource, Category, Space, User } from '../types';
 import { Card, Button } from '../components/UI';
-import { Upload, FileText, Filter, CheckSquare, Trash2, Edit, Send, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Upload, FileText, Filter, CheckSquare, Trash2, Edit, Send, Clock, CheckCircle, XCircle, AlertCircle, Folder, FolderOpen, ChevronRight, ChevronDown } from 'lucide-react';
 
 export const KnowledgeCollection: React.FC = () => {
   const [documents, setDocuments] = useState<CollectedDocument[]>([]);
@@ -14,6 +14,7 @@ export const KnowledgeCollection: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadData();
@@ -43,6 +44,60 @@ export const KnowledgeCollection: React.FC = () => {
     return true;
   });
 
+  const getFolderName = (doc: CollectedDocument) => {
+    if (!doc.filePath) return null;
+    const normalizedPath = doc.filePath.replace(/\\/g, '/');
+    const parts = normalizedPath.split('/').filter(Boolean);
+    return parts.length > 1 ? parts[0] : null;
+  };
+
+  const getFolderGroups = () => {
+    const groupedDocs = new Map<string, CollectedDocument[]>();
+    const folderRows: Array<{ type: 'folder'; folderName: string; docs: CollectedDocument[] } | { type: 'single'; doc: CollectedDocument }> = [];
+    const insertedFolders = new Set<string>();
+
+    filteredDocuments.forEach((doc) => {
+      const folderName = getFolderName(doc);
+      if (folderName) {
+        if (!groupedDocs.has(folderName)) {
+          groupedDocs.set(folderName, []);
+        }
+        groupedDocs.get(folderName)!.push(doc);
+      }
+    });
+
+    filteredDocuments.forEach((doc) => {
+      const folderName = getFolderName(doc);
+      if (!folderName) {
+        folderRows.push({ type: 'single', doc });
+        return;
+      }
+
+      if (!insertedFolders.has(folderName)) {
+        insertedFolders.add(folderName);
+        folderRows.push({
+          type: 'folder',
+          folderName,
+          docs: groupedDocs.get(folderName) || []
+        });
+      }
+    });
+
+    return folderRows;
+  };
+
+  const folderRows = getFolderGroups();
+
+  useEffect(() => {
+    const nextExpanded = new Set<string>();
+    folderRows.forEach((row) => {
+      if (row.type === 'folder') {
+        nextExpanded.add(row.folderName);
+      }
+    });
+    setExpandedFolders(nextExpanded);
+  }, [documents, activeTab, filterSource]);
+
   const toggleSelectDoc = (id: string) => {
     const newSelected = new Set(selectedDocs);
     if (newSelected.has(id)) {
@@ -59,6 +114,29 @@ export const KnowledgeCollection: React.FC = () => {
     } else {
       setSelectedDocs(new Set(filteredDocuments.map(d => d.id)));
     }
+  };
+
+  const toggleFolderExpand = (folderName: string) => {
+    const next = new Set(expandedFolders);
+    if (next.has(folderName)) {
+      next.delete(folderName);
+    } else {
+      next.add(folderName);
+    }
+    setExpandedFolders(next);
+  };
+
+  const toggleSelectFolder = (folderDocs: CollectedDocument[]) => {
+    const next = new Set(selectedDocs);
+    const allSelected = folderDocs.every(doc => next.has(doc.id));
+
+    if (allSelected) {
+      folderDocs.forEach(doc => next.delete(doc.id));
+    } else {
+      folderDocs.forEach(doc => next.add(doc.id));
+    }
+
+    setSelectedDocs(next);
   };
 
   const handleClassify = () => {
@@ -123,6 +201,92 @@ export const KnowledgeCollection: React.FC = () => {
     };
     return icons[source];
   };
+
+  const renderDocRow = (doc: CollectedDocument, isChild = false) => (
+    <tr key={doc.id} className="hover:bg-gray-50">
+      <td className="px-6 py-4">
+        <input
+          type="checkbox"
+          checked={selectedDocs.has(doc.id)}
+          onChange={() => toggleSelectDoc(doc.id)}
+          className="rounded border-gray-300"
+        />
+      </td>
+      <td className="px-6 py-4">
+        <div className={`flex items-center ${isChild ? 'pl-8' : ''}`}>
+          <FileText className="w-5 h-5 text-gray-400 mr-2" />
+          <div>
+            <div className="text-sm font-medium text-gray-900">{doc.fileName}</div>
+            <div className="text-xs text-gray-500">
+              {(doc.fileSize / 1024).toFixed(1)} KB • {doc.fileName.split('.').pop()?.toUpperCase() || 'FILE'}
+            </div>
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="text-sm">
+          <div className="font-medium text-gray-900">
+            {getSourceIcon(doc.source)} {doc.source}
+          </div>
+          <div className="text-xs text-gray-500 truncate max-w-xs">
+            {doc.sourceDetail}
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="flex items-center">
+          <img
+            src={doc.collectedBy.avatar}
+            alt=""
+            className="w-6 h-6 rounded-full mr-2"
+          />
+          <span className="text-sm text-gray-900">{doc.collectedBy.name}</span>
+        </div>
+      </td>
+      <td className="px-6 py-4 text-sm text-gray-500">
+        {new Date(doc.collectedAt).toLocaleDateString('vi-VN')}
+      </td>
+      <td className="px-6 py-4">
+        {getStatusBadge(doc.status)}
+      </td>
+      <td className="px-6 py-4 text-center">
+        {doc.status === 'Collected' && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedDocs(new Set([doc.id]));
+              setIsClassifyModalOpen(true);
+            }}
+          >
+            <Edit className="w-4 h-4 mr-1" />
+            Phân loại
+          </Button>
+        )}
+        {doc.status === 'Classified' && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              try {
+                await KMSService.sendToApproval([doc.id]);
+                alert('Đã gửi tài liệu vào quy trình phê duyệt!');
+                loadData();
+              } catch (error: any) {
+                alert('Lỗi: ' + error.message);
+              }
+            }}
+          >
+            <Send className="w-4 h-4 mr-1" />
+            Gửi duyệt
+          </Button>
+        )}
+        {['InApproval', 'Approved', 'Rejected'].includes(doc.status) && (
+          <span className="text-xs text-gray-500">—</span>
+        )}
+      </td>
+    </tr>
+  );
 
   return (
     <div className="space-y-6">
@@ -291,91 +455,50 @@ export const KnowledgeCollection: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredDocuments.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedDocs.has(doc.id)}
-                        onChange={() => toggleSelectDoc(doc.id)}
-                        className="rounded border-gray-300"
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <FileText className="w-5 h-5 text-gray-400 mr-2" />
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{doc.fileName}</div>
-                          <div className="text-xs text-gray-500">
-                            {(doc.fileSize / 1024).toFixed(1)} KB • {doc.fileName.split('.').pop()?.toUpperCase() || 'FILE'}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm">
-                        <div className="font-medium text-gray-900">
-                          {getSourceIcon(doc.source)} {doc.source}
-                        </div>
-                        <div className="text-xs text-gray-500 truncate max-w-xs">
-                          {doc.sourceDetail}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <img
-                          src={doc.collectedBy.avatar}
-                          alt=""
-                          className="w-6 h-6 rounded-full mr-2"
-                        />
-                        <span className="text-sm text-gray-900">{doc.collectedBy.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(doc.collectedAt).toLocaleDateString('vi-VN')}
-                    </td>
-                    <td className="px-6 py-4">
-                      {getStatusBadge(doc.status)}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      {doc.status === 'Collected' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedDocs(new Set([doc.id]));
-                            setIsClassifyModalOpen(true);
-                          }}
-                        >
-                          <Edit className="w-4 h-4 mr-1" />
-                          Phân loại
-                        </Button>
-                      )}
-                      {doc.status === 'Classified' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={async () => {
-                            try {
-                              await KMSService.sendToApproval([doc.id]);
-                              alert('Đã gửi tài liệu vào quy trình phê duyệt!');
-                              loadData();
-                            } catch (error: any) {
-                              alert('Lỗi: ' + error.message);
-                            }
-                          }}
-                        >
-                          <Send className="w-4 h-4 mr-1" />
-                          Gửi duyệt
-                        </Button>
-                      )}
-                      {['InApproval', 'Approved', 'Rejected'].includes(doc.status) && (
-                        <span className="text-xs text-gray-500">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                folderRows.map((row) => {
+                  if (row.type === 'single') {
+                    return renderDocRow(row.doc);
+                  }
+
+                  const isExpanded = expandedFolders.has(row.folderName);
+                  const allFolderSelected = row.docs.length > 0 && row.docs.every(doc => selectedDocs.has(doc.id));
+
+                  return (
+                    <React.Fragment key={`folder-${row.folderName}`}>
+                      <tr className="bg-amber-50/60 hover:bg-amber-50">
+                        <td className="px-6 py-3">
+                          <input
+                            type="checkbox"
+                            checked={allFolderSelected}
+                            onChange={() => toggleSelectFolder(row.docs)}
+                            className="rounded border-gray-300"
+                          />
+                        </td>
+                        <td colSpan={6} className="px-6 py-3">
+                          <button
+                            type="button"
+                            onClick={() => toggleFolderExpand(row.folderName)}
+                            className="flex items-center gap-2 text-sm font-semibold text-gray-800 hover:text-gray-900"
+                          >
+                            {isExpanded ? (
+                              <ChevronDown className="w-4 h-4 text-gray-500" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 text-gray-500" />
+                            )}
+                            {isExpanded ? (
+                              <FolderOpen className="w-4 h-4 text-amber-600" />
+                            ) : (
+                              <Folder className="w-4 h-4 text-amber-600" />
+                            )}
+                            <span>{row.folderName}</span>
+                            <span className="text-xs font-medium text-gray-500">({row.docs.length} file)</span>
+                          </button>
+                        </td>
+                      </tr>
+                      {isExpanded && row.docs.map(doc => renderDocRow(doc, true))}
+                    </React.Fragment>
+                  );
+                })
               )}
             </tbody>
           </table>

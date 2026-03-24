@@ -70,6 +70,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       icon: Upload, 
       path: '/knowledge-collection'
     },
+    {
+      name: 'TT tri thức chuyên gia nghỉ hưu',
+      icon: Upload,
+      path: '/retirement-knowledge-collection'
+    },
     { 
       name: 'Cộng tác tri thức', // 6 (thay cho Góp ý, đánh giá)
       icon: MessageSquare, 

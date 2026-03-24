@@ -21,6 +21,7 @@ import { RoleManagement } from './pages/RoleManagement';
 import { UserManagement } from './pages/UserManagement';
 import { MyDocuments } from './pages/MyDocuments';
 import { KnowledgeCollection } from './pages/KnowledgeCollection';
+import { RetirementKnowledgeCollection } from './pages/RetirementKnowledgeCollection';
 
 function AppRoutes() {
   const { isAuthenticated, login } = useAuth();
@@ -60,6 +61,7 @@ function AppRoutes() {
           
           {/* 5. Thu thập tri thức */}
           <Route path="/knowledge-collection" element={<KnowledgeCollection />} />
+          <Route path="/retirement-knowledge-collection" element={<RetirementKnowledgeCollection />} />
           
           {/* 6. Cộng tác tri thức */}
           <Route path="/feedback" element={<FeedbackList />} />

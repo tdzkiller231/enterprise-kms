@@ -14,6 +14,7 @@ interface RetirementKnowledgeRecord {
   department: string;
   categoryName: string;
   knowledgeType: string;
+  documentType: 'Tài liệu đào tạo' | 'Tài liệu công ty';
   title: string;
   summary: string;
   attachments: string[];
@@ -38,6 +39,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
   const [formData, setFormData] = useState({
     expertId: '',
     knowledgeType: '',
+    documentType: 'Tài liệu đào tạo' as 'Tài liệu đào tạo' | 'Tài liệu công ty',
     title: '',
     summary: '',
     tags: [] as string[],
@@ -68,6 +70,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           department: retirementExperts[0]?.department || 'Kỹ thuật',
           categoryName: 'Tri thức chuyên gia',
           knowledgeType: 'Kinh nghiệm',
+          documentType: 'Tài liệu đào tạo',
           title: 'Kinh nghiệm xử lý dao động áp suất cụm trao đổi nhiệt',
           summary: 'Tổng hợp cách nhận biết nguyên nhân và các bước xử lý nhanh theo ca.',
           attachments: ['xu_ly_ap_suat.pdf', 'video_huong_dan.mp4'],
@@ -84,6 +87,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           department: retirementExperts[1]?.department || 'Nhân sự',
           categoryName: 'Tri thức chuyên gia',
           knowledgeType: 'Lessons Learned',
+          documentType: 'Tài liệu công ty',
           title: 'Bài học triển khai đào tạo tại hiện trường',
           summary: 'Những bài học rút ra khi tổ chức đào tạo liên phòng ban.',
           attachments: ['lessons_learned_2025.pptx'],
@@ -100,6 +104,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           department: retirementExperts[2]?.department || retirementExperts[0]?.department || 'Kỹ thuật',
           categoryName: 'Tri thức chuyên gia',
           knowledgeType: 'Quy trình',
+          documentType: 'Tài liệu đào tạo',
           title: 'Quy trình chuẩn khởi động lại hệ thống sau dừng khẩn cấp',
           summary: 'Checklist và ngưỡng an toàn khi đưa dây chuyền vận hành trở lại.',
           attachments: ['quy_trinh_restart_v2.pdf'],
@@ -116,6 +121,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           department: retirementExperts[1]?.department || 'Nhân sự',
           categoryName: 'Tri thức chuyên gia',
           knowledgeType: 'Sự cố',
+          documentType: 'Tài liệu công ty',
           title: 'Sự cố mất tín hiệu cảm biến nhiệt độ đường ống chính',
           summary: 'Nguyên nhân thường gặp và các bước cô lập nhanh để không dừng toàn hệ thống.',
           attachments: ['incident_sensor_temp.docx', 'trend_data.csv'],
@@ -132,6 +138,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           department: retirementExperts[0]?.department || 'CNTT',
           categoryName: 'Tri thức chuyên gia',
           knowledgeType: 'Case study',
+          documentType: 'Tài liệu đào tạo',
           title: 'Case study tối ưu lịch bảo trì cụm bơm tuần hoàn',
           summary: 'So sánh trước/sau khi áp dụng bảo trì theo điều kiện vận hành thực tế.',
           attachments: ['case_study_pump_maintenance.pptx'],
@@ -148,6 +155,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           department: retirementExperts[2]?.department || retirementExperts[0]?.department || 'Kỹ thuật',
           categoryName: 'Tri thức chuyên gia',
           knowledgeType: 'Kinh nghiệm',
+          documentType: 'Tài liệu đào tạo',
           title: 'Kinh nghiệm đọc rung động bất thường từ dữ liệu online',
           summary: 'Mẹo nhận diện sớm nguy cơ hỏng vòng bi qua phổ rung.',
           attachments: ['vibration_best_practice.pdf'],
@@ -164,6 +172,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           department: retirementExperts[1]?.department || 'Nhân sự',
           categoryName: 'Tri thức chuyên gia',
           knowledgeType: 'Lessons Learned',
+          documentType: 'Tài liệu công ty',
           title: 'Lessons learned khi chuyển giao ca trực dịp cao điểm',
           summary: 'Các lỗi giao tiếp thường gặp và mẫu checklist bàn giao hiệu quả.',
           attachments: ['ll_shift_handover.pdf'],
@@ -180,6 +189,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           department: retirementExperts[0]?.department || 'CNTT',
           categoryName: 'Tri thức chuyên gia',
           knowledgeType: 'Quy trình',
+          documentType: 'Tài liệu công ty',
           title: 'Quy trình xử lý cảnh báo an ninh mạng tại khu vực OT',
           summary: 'Phân loại mức độ cảnh báo và quy trình phối hợp IT-OT theo SLA.',
           attachments: ['ot_security_response_v1.pdf'],
@@ -196,6 +206,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           department: retirementExperts[2]?.department || retirementExperts[0]?.department || 'Kỹ thuật',
           categoryName: 'Tri thức chuyên gia',
           knowledgeType: 'Case study',
+          documentType: 'Tài liệu đào tạo',
           title: 'Case study giảm tiêu hao hơi trong giai đoạn khởi động',
           summary: 'Các thông số vận hành tối ưu giúp giảm 8% tiêu hao hơi.',
           attachments: ['steam_optimization_case.xlsx'],
@@ -212,6 +223,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           department: retirementExperts[1]?.department || 'Nhân sự',
           categoryName: 'Tri thức chuyên gia',
           knowledgeType: 'Sự cố',
+          documentType: 'Tài liệu công ty',
           title: 'Sự cố lệch chuẩn chất lượng mẫu kiểm tra cuối ca',
           summary: 'Phân tích nguyên nhân do thao tác lấy mẫu và biện pháp phòng ngừa.',
           attachments: ['quality_incident_report.pdf'],
@@ -270,6 +282,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
     setFormData({
       expertId: '',
       knowledgeType: '',
+      documentType: 'Tài liệu đào tạo',
       title: '',
       summary: '',
       tags: [],
@@ -292,6 +305,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
     setFormData({
       expertId: record.expertId,
       knowledgeType: record.knowledgeType,
+      documentType: record.documentType,
       title: record.title,
       summary: record.summary,
       tags: record.tags,
@@ -316,6 +330,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
       department: expert.department || 'N/A',
       categoryName: expertKnowledgeCategory?.name || 'Tri thức chuyên gia',
       knowledgeType: formData.knowledgeType,
+      documentType: formData.documentType,
       title: formData.title,
       summary: formData.summary,
       attachments: attachments.length > 0 ? attachments.map(file => file.name) : (editingRecordId ? (records.find(r => r.id === editingRecordId)?.attachments || []) : []),
@@ -379,7 +394,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
         expiryDate: formData.expiryDate || undefined,
         lifecycleStatus: 'PendingLevel1' as const,
         status: DocStatus.PENDING,
-        documentType: 'Tài liệu đào tạo' as const,
+        documentType: formData.documentType,
         fileType: 'pdf' as const
       };
 
@@ -527,7 +542,35 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">7. File đính kèm</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">7. Loại tài liệu <span className="text-red-500">*</span></label>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="documentType"
+                  value="Tài liệu đào tạo"
+                  checked={formData.documentType === 'Tài liệu đào tạo'}
+                  onChange={(e) => setFormData(prev => ({ ...prev, documentType: e.target.value as 'Tài liệu đào tạo' | 'Tài liệu công ty' }))}
+                  className="text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-sm">Tài liệu đào tạo</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="documentType"
+                  value="Tài liệu công ty"
+                  checked={formData.documentType === 'Tài liệu công ty'}
+                  onChange={(e) => setFormData(prev => ({ ...prev, documentType: e.target.value as 'Tài liệu đào tạo' | 'Tài liệu công ty' }))}
+                  className="text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-sm">Tài liệu công ty</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">8. File đính kèm</label>
             <input
               type="file"
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
@@ -542,7 +585,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">8. Tags</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">9. Tags</label>
             <input
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
@@ -571,7 +614,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">9. Nguồn dữ liệu</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">10. Nguồn dữ liệu</label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
               value={formData.source}
@@ -586,7 +629,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">10. Ngày hiệu lực</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">11. Ngày hiệu lực</label>
             <input
               type="date"
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
@@ -596,7 +639,7 @@ export const RetirementKnowledgeCollection: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">11. Ngày hết hạn</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">12. Ngày hết hạn</label>
             <input
               type="date"
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"

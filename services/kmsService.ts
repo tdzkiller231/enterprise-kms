@@ -4207,6 +4207,13 @@ export const KMSService = {
     effectiveDate?: string;
     expiryDate?: string;
     notes?: string;
+    documentMetadata?: Array<{
+      documentId: string;
+      title: string;
+      summary: string;
+      documentType: 'Tài liệu đào tạo' | 'Tài liệu công ty';
+      source: CollectionSource;
+    }>;
   }) => {
     const docs = MOCK_COLLECTED_DOCUMENTS.filter(d => data.documentIds.includes(d.id));
     
@@ -4215,12 +4222,20 @@ export const KMSService = {
     }
     
     docs.forEach(doc => {
+      const metadata = data.documentMetadata?.find(item => item.documentId === doc.id);
+
       doc.status = 'Classified';
       doc.categoryIds = data.categoryIds;
       doc.spaceId = data.spaceId;
       doc.tags = data.tags;
       doc.effectiveDate = data.effectiveDate;
       doc.expiryDate = data.expiryDate;
+      if (metadata) {
+        doc.title = metadata.title;
+        doc.description = metadata.summary;
+        (doc as any).documentType = metadata.documentType;
+        doc.source = metadata.source;
+      }
       if (data.notes) {
         doc.notes = (doc.notes ? doc.notes + '\n' : '') + data.notes;
       }

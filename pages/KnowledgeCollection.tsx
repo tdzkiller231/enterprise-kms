@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { KMSService } from '../services/kmsService';
-import { CollectedDocument, CollectionStatus, CollectionSource, Category, Space, User } from '../types';
+import { CollectedDocument, CollectionStatus, CollectionSource, Category, User } from '../types';
 import { Card, Button } from '../components/UI';
 import { Upload, FileText, Filter, CheckSquare, Trash2, Edit, Send, Clock, CheckCircle, XCircle, AlertCircle, Folder, FolderOpen, ChevronRight, ChevronDown } from 'lucide-react';
 
@@ -12,7 +12,6 @@ export const KnowledgeCollection: React.FC = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isClassifyModalOpen, setIsClassifyModalOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [spaces, setSpaces] = useState<Space[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
@@ -21,15 +20,13 @@ export const KnowledgeCollection: React.FC = () => {
   }, []);
 
   const loadData = async () => {
-    const [docs, cats, sps, user] = await Promise.all([
+    const [docs, cats, user] = await Promise.all([
       KMSService.getCollectedDocuments(),
       KMSService.getCategories(),
-      KMSService.getSpaces(),
       KMSService.getCurrentUser()
     ]);
     setDocuments(docs);
     setCategories(cats);
-    setSpaces(sps);
     setCurrentUser(user);
   };
 
@@ -523,7 +520,6 @@ export const KnowledgeCollection: React.FC = () => {
           documentIds={Array.from(selectedDocs)}
           documents={documents.filter(d => selectedDocs.has(d.id))}
           categories={categories}
-          spaces={spaces}
           onClose={() => {
             setIsClassifyModalOpen(false);
             setSelectedDocs(new Set());
@@ -731,7 +727,6 @@ interface ClassifyModalProps {
   documentIds: string[];
   documents: CollectedDocument[];
   categories: Category[];
-  spaces: Space[];
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -740,10 +735,16 @@ const ClassifyModal: React.FC<ClassifyModalProps> = ({
   documentIds,
   documents,
   categories,
-  spaces,
   onClose,
   onSuccess
 }) => {
+  type DocumentTypeOption = 'Tài liệu đào tạo' | 'Tài liệu công ty';
+  type DocMetadataForm = {
+    title: string;
+    summary: string;
+    documentType: DocumentTypeOption;
+  };
+
   const [formData, setFormData] = useState({
     categoryIds: [] as string[],
     tags: '',
@@ -751,11 +752,56 @@ const ClassifyModal: React.FC<ClassifyModalProps> = ({
     expiryDate: '',
     notes: ''
   });
+  const [docMetadata, setDocMetadata] = useState<Record<string, DocMetadataForm>>(() => {
+    const initial: Record<string, DocMetadataForm> = {};
+    documents.forEach((doc) => {
+      const normalizedTitle = (doc.title || doc.fileName.replace(/\.[^/.]+$/, '')).trim();
+      initial[doc.id] = {
+        title: normalizedTitle,
+        summary: (doc.description || '').trim(),
+        documentType: ((doc as any).documentType as DocumentTypeOption) || 'Tài liệu đào tạo'
+      };
+    });
+    return initial;
+  });
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const next: Record<string, DocMetadataForm> = {};
+    documents.forEach((doc) => {
+      const normalizedTitle = (doc.title || doc.fileName.replace(/\.[^/.]+$/, '')).trim();
+      next[doc.id] = {
+        title: normalizedTitle,
+        summary: (doc.description || '').trim(),
+        documentType: ((doc as any).documentType as DocumentTypeOption) || 'Tài liệu đào tạo'
+      };
+    });
+    setDocMetadata(next);
+  }, [documents]);
+
+  const updateDocMetadata = (docId: string, patch: Partial<DocMetadataForm>) => {
+    setDocMetadata((prev) => ({
+      ...prev,
+      [docId]: {
+        ...prev[docId],
+        ...patch
+      }
+    }));
+  };
 
   const handleSubmit = async () => {
     if (formData.categoryIds.length === 0) {
       alert('Vui lòng chọn ít nhất 1 danh mục');
+      return;
+    }
+
+    const invalidDoc = documents.find((doc) => {
+      const metadata = docMetadata[doc.id];
+      return !metadata?.title?.trim() || !metadata?.summary?.trim();
+    });
+
+    if (invalidDoc) {
+      alert(`Vui lòng nhập đầy đủ Tiêu đề và Tóm tắt cho tài liệu: ${invalidDoc.fileName}`);
       return;
     }
 
@@ -767,7 +813,14 @@ const ClassifyModal: React.FC<ClassifyModalProps> = ({
         tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
         effectiveDate: formData.effectiveDate,
         expiryDate: formData.expiryDate,
-        notes: formData.notes
+        notes: formData.notes,
+        documentMetadata: documents.map((doc) => ({
+          documentId: doc.id,
+          title: docMetadata[doc.id].title.trim(),
+          summary: docMetadata[doc.id].summary.trim(),
+          documentType: docMetadata[doc.id].documentType,
+          source: doc.source
+        }))
       });
       alert('Đã phân loại thành công!');
       onSuccess();
@@ -791,17 +844,85 @@ const ClassifyModal: React.FC<ClassifyModalProps> = ({
         </div>
 
         <div className="p-6 space-y-4">
-          {/* Documents List */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-gray-700 mb-2">Các tài liệu được chọn:</p>
-            <ul className="space-y-1 max-h-32 overflow-y-auto">
-              {documents.map(doc => (
-                <li key={doc.id} className="text-sm text-gray-600 flex items-center">
-                  <FileText className="w-4 h-4 mr-2 text-gray-400" />
+          {/* Per-document metadata (same required fields as document upload form) */}
+          <div className="space-y-4">
+            {documents.map((doc) => (
+              <div key={doc.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50/70 space-y-3">
+                <div className="flex items-center text-sm font-medium text-gray-800">
+                  <FileText className="w-4 h-4 mr-2 text-gray-500" />
                   {doc.fileName}
-                </li>
-              ))}
-            </ul>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tiêu đề tài liệu <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    value={docMetadata[doc.id]?.title || ''}
+                    onChange={(e) => updateDocMetadata(doc.id, { title: e.target.value })}
+                    placeholder="Nhập tiêu đề..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tóm tắt nội dung <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    rows={3}
+                    value={docMetadata[doc.id]?.summary || ''}
+                    onChange={(e) => updateDocMetadata(doc.id, { summary: e.target.value })}
+                    placeholder="Mô tả ngắn gọn nội dung tài liệu..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Loại tài liệu <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`documentType-${doc.id}`}
+                          value="Tài liệu đào tạo"
+                          checked={docMetadata[doc.id]?.documentType === 'Tài liệu đào tạo'}
+                          onChange={() => updateDocMetadata(doc.id, { documentType: 'Tài liệu đào tạo' })}
+                          className="text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm">Tài liệu đào tạo</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`documentType-${doc.id}`}
+                          value="Tài liệu công ty"
+                          checked={docMetadata[doc.id]?.documentType === 'Tài liệu công ty'}
+                          onChange={() => updateDocMetadata(doc.id, { documentType: 'Tài liệu công ty' })}
+                          className="text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm">Tài liệu công ty</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nguồn dữ liệu</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+                      value={doc.source}
+                      disabled
+                      readOnly
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Category */}
